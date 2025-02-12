@@ -35,8 +35,8 @@ DIG has been tested in MacOS Mojave 10.14.3 and Ubuntu (18.04 LTS and 16.04 LTS)
 
 Before running the experiments (assuming that `~` indicates the path to the home directory in your system): 
 - clone the repository in `~/workspace` (create the folder `workspace` if it does not exist): `cd ~/workspace && git clone https://github.com/matteobiagiola/FSE19-submission-material-DIG.git` assuming that the directory `~/workspace` is empty
-- install evosuite: `cd ~/workpsace/evosuite && mvn clean install -DskipTests`
-- compile each subject: `cd ~/workpsace/fse2019/<application_name> && mvn clean compile` where `<application_name>` is: 
+- install evosuite: `cd ~/workspace/evosuite && mvn clean install -DskipTests`
+- compile each subject: `cd ~/workspace/fse2019/<application_name> && mvn clean compile` where `<application_name>` is: 
   - `dimeshift|pagekit|splittypie|phoenix|retroboard|petclinic`
 - download docker web application images. The instructions to run each web application are in the relative folders (`fse2019/<application_name>`):
   - `docker pull dockercontainervm/dimeshift:latest` ([README](https://github.com/matteobiagiola/FSE19-submission-material-DIG/blob/master/fse2019/dimeshift/README.md))
