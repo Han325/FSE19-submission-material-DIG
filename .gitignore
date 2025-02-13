@@ -1,3 +1,5 @@
+smoke/
+.vscode
 *.log
 *.dot
 *.iml
@@ -22,3 +24,5 @@ master/dependency-reduced-pom.xml
 shaded/dependency-reduced-pom.xml
 standalone_runtime/dependency-reduced-pom.xml
 temp
+.vagrant
+evosuite/plugins/gradle/.gradle/

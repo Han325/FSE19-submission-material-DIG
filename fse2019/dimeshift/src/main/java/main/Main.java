@@ -5,7 +5,7 @@ import po_utils.ResetAppState;
 
 public class Main {
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws InterruptedException {
 
         ResetAppState.reset();
         ClassUnderTest classUnderTest0 = new ClassUnderTest();

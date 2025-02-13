@@ -47,13 +47,6 @@ PRODUCTION=false
 SEARCH_BUDGET=300
 APOGEN=false
 
-# EXPERIMENT_NUMBER_FAST. 1 means character_based_shingling and shingle_length = 2; 2 means sequence_based_shingling
-# and shingle_length = 2
-
-# EXPERIMENT_NUMBER_FASTSET. 4 strategies FAST_SET_STRATEGY = [SET, MULTISET, TF, TF_IDF]. For each strategy
-# decide SHINGLE_LENGTH = [2,3], ASYMMETRY=[false,true]. So EXPERIMENT_NUMBER_FASTSET = 1 means
-# FAST_SET_STRATEGY = SET, with SHINGLE_LENGTH = 2 and ASYMMETRY = false.
-
 OS=$(uname)
 
 while getopts 'ha:b:c:d:g:i:p:q:r:s:t:' arg
@@ -99,10 +92,10 @@ done
 echo "Project name: " $PROJECT_NAME
 echo "Database port for remote connection: " $DB_PORT
 echo "Application port for remote connection: " $APP_PORT
-echo "Chromedriver port: " $CHROMEDRIVER_PORT
 
 DRIVER_HEADLESS=false
 EVOSUITE_PROPERTIES_FILE=$PWD/evosuite-files/evosuite.properties
+
 if [[ $PRODUCTION == "true" ]]; then
     DRIVER_HEADLESS=true
     if [[ $OS == "Darwin" ]]; then
@@ -159,13 +152,6 @@ else
 	echo "please type 'mosa', 'whole', 'adaptiveSequence', 'adaptiveComplete', or 'random' as second argument to continue"
 	exit
 fi
-
-checkIfProcessIsNotListeningOnPort $CHROMEDRIVER_PORT
-
-# Start chromedriver: chromedriver bin must be in the path
-echo "Starting chromedriver on port "$CHROMEDRIVER_PORT
-chromedriver --port=$CHROMEDRIVER_PORT &
-
 
 SUFFIX=$PROJECT_NAME"_"$COUNTER
 TEST_DIR=$HOME/Desktop/test$SUFFIX
@@ -227,31 +213,10 @@ sleep 2
 mv $HOME/Desktop/logs$SUFFIX.txt $HOME/Desktop/test$SUFFIX/logs$SUFFIX.txt
 mv $HOME/Desktop/errors$SUFFIX.txt $HOME/Desktop/test$SUFFIX/errors$SUFFIX.txt
 
-echo "Stopping chromedriver process listening on port "$CHROMEDRIVER_PORT
-
-PID_CHROMEDRIVER_TO_KILL=$(lsof -Pan -i | grep "chromedri" | grep "127.0.0.1:"$CHROMEDRIVER_PORT | awk '{print $2}')
-if [ -z "$PID_CHROMEDRIVER_TO_KILL" ]; then
-  echo Error in killing chromedriver process. PID of chromedriver is empty: $PID_CHROMEDRIVER_TO_KILL
-  echo "Removing session file if exists"
-  if [[ -e $HOME/Desktop/$PROJECT_NAME.ser ]]; then
-      rm $HOME/Desktop/$PROJECT_NAME.ser
-  fi
-  exit 1
-fi
-
-echo "Finding children processes of chromedriver and killing them"
-pgrep -P $PID_CHROMEDRIVER_TO_KILL | xargs kill -9
-kill -9 $PID_CHROMEDRIVER_TO_KILL
-
 echo "Removing session file if exists"
 if [[ -e $HOME/Desktop/$PROJECT_NAME.ser ]]; then
     rm $HOME/Desktop/$PROJECT_NAME.ser
 fi
-
-# echo "Stopping container " $PROJECT_NAME
-# docker stop $PROJECT_NAME
-# echo "Removing container " $PROJECT_NAME
-# docker rm $PROJECT_NAME
 
 
 

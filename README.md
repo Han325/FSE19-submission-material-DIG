@@ -3,6 +3,8 @@ This repository contains the tool implementing the approach described in an ESEC
 
 ## 1. Automatic Setup
 
+:warning: The virtual machine is currently broken. I am investigating how to fix it. Please follow the instructions for Vagrant setup below :warning:
+
 A virtual machine running Ubuntu server 18.04 is available for download [here](https://drive.switch.ch/index.php/s/ndtnMiuA3FypW5q/download). The virtual machine contains this repository and all the dependencies needed to run DIG on the web application subjects. 
 
 The virtual machine was created with VirtualBox and was exported in the `.ova` format, a platform-independent distribution format for virtual machines. It can be imported by any virtualization software although it was tested only on VirtualBox. Instructions on how to import an `.ova` format virtual machine in VirtualBox and VMWare Fusion are listed below:
@@ -18,9 +20,24 @@ Login credentials:
 
 If the automatic setup worked, you can skip to [the run experiments section](#2-run-the-experiments-test-case-generation---after-the-setup). Otherwise procede to the [manual setup section](#11-manual-setup).
 
-#### 1.1 Manual Setup
+#### 1.1 Vagrant setup
 
-##### 1.1.1 DIG and the test suite subjects have the following dependencies:
+Install [vagrant](https://developer.hashicorp.com/vagrant/install) and an hypervisor, e.g., [Virtualbox](https://www.virtualbox.org/wiki/Downloads). Then, from the root of the repository type:
+
+```commandline
+vagrant up # this sets up the virtual machine with all the required dependencies
+vagrant ssh # to access the machine
+exit # to exit the machine 
+vagrant halt # to stop the machine
+```
+
+The VM is provisioned with all the dependencies, i.e., `java`, `mvn` and `docker`, where both `evosuite` and all the applications have been compiled and all their dependencies stored.
+
+Before running the experiments remember to `vagrant ssh` when using this setup. The VM does not pull the docker containers during provisioning, but they will be downloaded automatically the first time an experiment is executed (i.e., when using `dimeshift` for the first time, the `docker` engine will download the the `dimeshift` image as well as the `chrome` image). Currently only `dimeshift` is supported for this setup, which uses a `docker` container for the browser. Moreover, with this setup it is not possible to run experiments in parallel, since the application and the db ports are hardcoded.
+
+#### 1.2 Manual Setup
+
+##### 1.2.1 DIG and the test suite subjects have the following dependencies:
 
 1. Java JDK 1.8 (https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 2. Maven 3.6.0 (https://maven.apache.org/download.cgi)
@@ -31,7 +48,7 @@ If the automatic setup worked, you can skip to [the run experiments section](#2-
 
 DIG has been tested in MacOS Mojave 10.14.3 and Ubuntu (18.04 LTS and 16.04 LTS).
 
-##### 1.1.2 Clone repo and download docker images
+##### 1.2.2 Clone repo and download docker images
 
 Before running the experiments (assuming that `~` indicates the path to the home directory in your system): 
 - clone the repository in `~/workspace` (create the folder `workspace` if it does not exist): `cd ~/workspace && git clone https://github.com/matteobiagiola/FSE19-submission-material-DIG.git` assuming that the directory `~/workspace` is empty

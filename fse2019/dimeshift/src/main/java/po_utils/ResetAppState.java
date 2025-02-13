@@ -25,6 +25,7 @@ public class ResetAppState {
 
     private static void resetDB(String username, String password, String dbName, List<String> tables){
         int port = Integer.valueOf(MyProperties.getInstance().getProperty("dbPort"));
+        port = 3306;
         MySqlConnection mySqlConnection = new MySqlConnection();
         Optional<Connection> optionalConneciton = mySqlConnection.establishDBConnection("root","root",port,"walletjs");
         if(optionalConneciton.isPresent()){
