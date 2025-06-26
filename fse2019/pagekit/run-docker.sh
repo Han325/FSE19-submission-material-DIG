@@ -52,12 +52,15 @@ if [[ $PRODUCTION == "yes"  ]]; then
 		echo "Assigns a name to the running container for production usage!!"
 		exit 1
 	fi
-	docker run -it --workdir=/var/www/html/pagekit --name=$CONTAINER_NAME --expose 80 --expose 3306 -p $PORT_APP:80 -p $PORT_DB:3306 --entrypoint ./run-services-docker.sh -d dockercontainervm/pagekit:latest bash
-	#docker exec --workdir=/var/www/html/pagekit -d $CONTAINER_NAME ./run-services-docker.sh
+	# docker run -it --workdir=/var/www/html/pagekit --name=$CONTAINER_NAME --expose 80 --expose 3306 -p $PORT_APP:80 -p $PORT_DB:3306 --entrypoint ./run-services-docker.sh -d dockercontainervm/pagekit:latest bash
+	# #docker exec --workdir=/var/www/html/pagekit -d $CONTAINER_NAME ./run-services-docker.sh
+	docker compose up -d
 else
-	if [[ $CONTAINER_NAME != "default" ]]; then
-		docker run -it --workdir=/var/www/html/pagekit --name=$CONTAINER_NAME --expose 80 --expose 3306 -p $PORT_APP:80 -p $PORT_DB:3306 dockercontainervm/pagekit:latest bash
-	else
-		docker run -it --workdir=/var/www/html/pagekit --expose 80 --expose 3306 -p $PORT_APP:80 -p $PORT_DB:3306 dockercontainervm/pagekit:latest bash
-	fi
+	# if [[ $CONTAINER_NAME != "default" ]]; then
+	# 	docker run -it --workdir=/var/www/html/pagekit --name=$CONTAINER_NAME --expose 80 --expose 3306 -p $PORT_APP:80 -p $PORT_DB:3306 dockercontainervm/pagekit:latest bash
+	# else
+	# 	docker run -it --workdir=/var/www/html/pagekit --expose 80 --expose 3306 -p $PORT_APP:80 -p $PORT_DB:3306 dockercontainervm/pagekit:latest bash
+	# fi
+	echo "else branch is running"
+	docker compose up
 fi

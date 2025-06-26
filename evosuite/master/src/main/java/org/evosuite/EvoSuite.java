@@ -296,6 +296,12 @@ public class EvoSuite {
      */
     public static void main(String[] args) {
 
+        // START: Add this debugging code
+        java.net.URL location = org.evosuite.testcase.TestFactory.class.getProtectionDomain().getCodeSource().getLocation();
+        System.out.println("GOT A NEW LOGGING SHIT FUCKING HELL FAM WE HAVE PATTERNED A NEW TING FAM LETS GO");
+        System.out.println("BIG MAN TING WE DOING PAGEKIT NOW FAM DROP THE LINK V2 PATTERNING");
+        // END: Add this debugging code
+
         try 
         {
             EvoSuite evosuite = new EvoSuite();

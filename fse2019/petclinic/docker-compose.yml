@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+
+  webapp:
+    stdin_open: true
+    tty: true
+    working_dir: /home/spring-petclinic-angularjs
+    image: dockercontainervm/petclinic:latest
+    container_name: petclinic
+    expose:
+      - 8080
+      - 3306
+    ports:
+      - "3000:8080"
+      - "3306:3306"
+    entrypoint: ./run-services-docker.sh
+    environment:
+      - PATH=/root/workspace/maven/apache-maven-3.5.4/bin:/root/workspace/java/jdk1.8.0_181/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  chrome:
+    image: selenium/standalone-chrome:3.141.59-dubnium
+    shm_size: 2gb
+    expose:
+      - 4444
+      - 7900
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    volumes:
+      - /dev/shm:/dev/shm # Recommended for Chrome to avoid crashes
+    depends_on:
+      - webapp
+
+
+

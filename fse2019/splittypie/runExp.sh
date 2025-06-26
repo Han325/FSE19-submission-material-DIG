@@ -1,27 +1,28 @@
 #!/bin/bash
 stopContainers(){
-	echo "Stopping containers"
-	local alg=$1
-	if [[ $alg == "SUBWEB" ]]; then
-	    docker stop splittypieMosa
-	    docker rm splittypieMosa
-    elif [[ $alg == "DIGS" ]]; then
-        docker stop splittypieAdaptiveSequence
-	    docker rm splittypieAdaptiveSequence
-    elif [[ $alg == "DIGSI" ]]; then
-        docker stop splittypieAdaptiveComplete
-	    docker rm splittypieAdaptiveComplete
-    elif [[ $alg == "ALL" ]]; then
-        docker stop splittypieMosa
-	    docker rm splittypieMosa
-        docker stop splittypieAdaptiveSequence
-	    docker rm splittypieAdaptiveSequence
-	    docker stop splittypieAdaptiveComplete
-	    docker rm splittypieAdaptiveComplete
-    else
-        echo "Unknown alg: $alg"
-        exit 1
-	fi
+	# echo "Stopping containers"
+	# local alg=$1
+	# if [[ $alg == "SUBWEB" ]]; then
+	#     docker stop splittypieMosa
+	#     docker rm splittypieMosa
+    # elif [[ $alg == "DIGS" ]]; then
+    #     docker stop splittypieAdaptiveSequence
+	#     docker rm splittypieAdaptiveSequence
+    # elif [[ $alg == "DIGSI" ]]; then
+    #     docker stop splittypieAdaptiveComplete
+	#     docker rm splittypieAdaptiveComplete
+    # elif [[ $alg == "ALL" ]]; then
+    #     docker stop splittypieMosa
+	#     docker rm splittypieMosa
+    #     docker stop splittypieAdaptiveSequence
+	#     docker rm splittypieAdaptiveSequence
+	#     docker stop splittypieAdaptiveComplete
+	#     docker rm splittypieAdaptiveComplete
+    # else
+    #     echo "Unknown alg: $alg"
+    #     exit 1
+	# fi
+    docker compose down
 }
 
 if test $# -lt 4 ; then echo 'ARGS: ITERATIONS [num], ALG [SUBWEB|DIGS|DIGSI|ALL], PO [MANUAL|APOGEN], BUDGET [num (seconds)]' ; exit 1 ; fi
@@ -62,7 +63,7 @@ else
 fi
 
 echo Waiting for application servers to start...
-sleep 60
+# sleep 60
 echo Start testing
 
 while [ $COUNTER -lt $ITERATIONS ]

@@ -47,8 +47,9 @@ if [[ $PRODUCTION == "yes"  ]]; then
 		echo "Assigns a name to the running container for production usage!!"
 		exit 1
 	fi	
-	docker run -it --workdir=/home/splittypie --name=$CONTAINER_NAME --expose 4200 -p $PORT_APP:4200 -d --entrypoint ./run-services-docker.sh dockercontainervm/splittypie:latest bash
+	# docker run -it --workdir=/home/splittypie --name=$CONTAINER_NAME --expose 4200 -p $PORT_APP:4200 -d --entrypoint ./run-services-docker.sh dockercontainervm/splittypie:latest bash
 	# docker exec --workdir=/home/splittypie -d $CONTAINER_NAME /bin/bash ./run-services-docker.sh
+	docker compose up -d
 else
 	if [[ $CONTAINER_NAME != "default" ]]; then
 		docker run -it --workdir=/home/splittypie --name=$CONTAINER_NAME --expose 4200 -p $PORT_APP:4200 dockercontainervm/splittypie:latest bash

@@ -334,11 +334,13 @@ public class AllMethodsTestChromosomeFactory implements ChromosomeFactory<TestCh
 				try {
 					TestFactory testFactory = TestFactory.getInstance();
 					if (call.isMethod() && firstMethodToAdd) {
+						logger.info("MOFL: ADD METHOD ONLY FUNCTION IS CALLED");
 						testFactory.addMethod(test, (GenericMethod) call, test.size(), 0);
 						firstMethodToAdd = false;
 					}
 					else if(call.isMethod())
 					{
+						logger.info("MOFL: ADD METHOD FOR FUNCTION IS CALLED");
 						GenericMethod method = (GenericMethod) call;
 						ConstructorStatement cStmt = (ConstructorStatement) test.getStatement(0);
 						VariableReference cStmtVar = cStmt.getReturnValue();
@@ -350,6 +352,7 @@ public class AllMethodsTestChromosomeFactory implements ChromosomeFactory<TestCh
 			num++;
 			i++;
 		}
+
 		if (logger.isDebugEnabled())
 			logger.debug("@@@@Randomized path sequence test case:" + test.toCode());
 

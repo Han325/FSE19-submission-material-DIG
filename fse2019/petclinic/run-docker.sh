@@ -52,12 +52,13 @@ if [[ $PRODUCTION == "yes"  ]]; then
 		echo "Assigns a name to the running container for production usage!!"
 		exit 1
 	fi
-	docker run -it --workdir=/home/spring-petclinic-angularjs --name=$CONTAINER_NAME \
-		--expose 8080 --expose 3306 -p $PORT_APP:8080 -p $PORT_DB:3306 -d \
-		--env PATH=/root/workspace/maven/apache-maven-3.5.4/bin:/root/workspace/java/jdk1.8.0_181/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
-		--entrypoint ./run-services-docker.sh dockercontainervm/petclinic:latest bash
-	#docker exec --workdir=/home/phoenix-trello -d --env PATH=/root/.kiex/elixirs/elixir-1.3.1/bin:/root/.kiex/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin $CONTAINER_NAME /bin/bash ./run-services-docker.sh
-	# docker exec --workdir=/home/dimeshift-application -d $CONTAINER_NAME /bin/bash ./run-services-docker.sh
+	# docker run -it --workdir=/home/spring-petclinic-angularjs --name=$CONTAINER_NAME \
+	# 	--expose 8080 --expose 3306 -p $PORT_APP:8080 -p $PORT_DB:3306 -d \
+	# 	--env PATH=/root/workspace/maven/apache-maven-3.5.4/bin:/root/workspace/java/jdk1.8.0_181/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+	# 	--entrypoint ./run-services-docker.sh dockercontainervm/petclinic:latest bash
+	# #docker exec --workdir=/home/phoenix-trello -d --env PATH=/root/.kiex/elixirs/elixir-1.3.1/bin:/root/.kiex/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin $CONTAINER_NAME /bin/bash ./run-services-docker.sh
+	# # docker exec --workdir=/home/dimeshift-application -d $CONTAINER_NAME /bin/bash ./run-services-docker.sh
+	docker compose up -d
 else
 	if [[ $CONTAINER_NAME != "default" ]]; then
 		docker run -it --workdir=/home/spring-petclinic-angularjs --name=$CONTAINER_NAME --expose 8080 --expose 3306 -p $PORT_APP:8080 -p $PORT_DB:3306 dockercontainervm/petclinic:latest bash

@@ -187,6 +187,7 @@ public class TestCaseExecutor implements ThreadFactory {
 				result = executor.executeSelenium(testCaseWithSleeps);
 				long executionTime = result.getExecutionTime();
 				Collection<Throwable> thrownExceptions = result.getAllThrownExceptions();
+				logger.info("FUCK FAM THE EXECUTING WENT TO SHIT HERE IS THE TING FAM FUCK: " + result.getAllThrownExceptions());
 				if(Properties.CUT_EXCEPTIONS){
 					if(!test.isMinimized() || test.hasMinimizationFailed()){
 						thrownExceptions = filterThrownExceptions(thrownExceptions);

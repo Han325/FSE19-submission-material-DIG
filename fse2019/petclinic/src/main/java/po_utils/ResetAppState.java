@@ -17,6 +17,7 @@ public class ResetAppState {
 
     private static void resetDB(String username, String password, String dbName){
         int port = Integer.valueOf(MyProperties.getInstance().getProperty("dbPort"));
+        port = 3306;
         MySqlConnection mySqlConnection = new MySqlConnection();
         Optional<Connection> optionalConnection = mySqlConnection.establishDBConnection(username, password, port, dbName);
         if(optionalConnection.isPresent()){

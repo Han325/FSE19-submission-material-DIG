@@ -24,10 +24,12 @@ public class DriverProvider {
     public WebDriver getActiveDriver(){
         WebDriver driver = null;
         try {
-            String chromedriverURL = new URL("http://localhost:"
-                    + Integer.valueOf(MyProperties.getInstance().getProperty("chromedriverPort"))).toString();
-            String appUrl = "http://localhost:" + Integer.valueOf(MyProperties.getInstance().getProperty("appPort"))
-                    + "/pagekit/index.php/admin/login";
+            // String chromedriverURL = new URL("http://localhost:"
+            //         + Integer.valueOf(MyProperties.getInstance().getProperty("chromedriverPort"))).toString();
+            // String appUrl = "http://localhost:" + Integer.valueOf(MyProperties.getInstance().getProperty("appPort"))
+            //         + "/pagekit/index.php/admin/login";
+            String chromedriverURL = "http://localhost:4444/wd/hub";
+            String appUrl = "http://webapp:8080/pagekit/index.php/admin/login"; 
             boolean driverHeadless = Boolean.valueOf(MyProperties.getInstance().getProperty("driverHeadless"));
             if(sessionId.isEmpty()){
                 DesiredCapabilities capabilities = DesiredCapabilities.chrome();

@@ -13,6 +13,7 @@ public class ResetAppState {
 
     public static void reset(){
         int port = Integer.valueOf(MyProperties.getInstance().getProperty("dbPort"));
+        port = 3306;
         resetDB("root","root","pagekit", port,"src/main/resources/pagekit_db.sql");
     }
 

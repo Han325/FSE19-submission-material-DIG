@@ -24,6 +24,8 @@ package org.evosuite.ga.metaheuristics.art;
 
 import org.evosuite.ProgressMonitor;
 import org.evosuite.Properties;
+// NEW TINGS
+import org.evosuite.enhancer.LLMInputEnhancer; 
 import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
@@ -48,6 +50,9 @@ import org.evosuite.testsuite.TestSuiteFitnessFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -62,6 +67,8 @@ import java.util.stream.Collectors;
 public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdaptiveRandomSearch.class);
+
+	private final LLMInputEnhancer llmEnhancer; // <--- ADD THIS LINE
 
 	/** Map used to store the covered test goals (keys of the map) and the corresponding covering test cases (values of the map) **/
 	protected Map<FitnessFunction<T>, T> archive = new  HashMap<FitnessFunction<T>, T>();
@@ -103,6 +110,8 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 					"only one search criterion. Found " + Properties.CRITERION.length + " - "
 					+ criteria);
 		}
+		this.llmEnhancer = new LLMInputEnhancer();
+
 	}
 
 	private static final long serialVersionUID = -7685015421245920459L;
@@ -113,17 +122,84 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 	/** {@inheritDoc} */
 	@Override
 	protected void evolve() {
+		// int k = Properties.ART_ALGORITHM_NUM_CANDIDATES;
+		// List<T> candidates = new ArrayList<T>();
+		// for (int i = 0; i < k; i++) {
+		// 	T candidate = chromosomeFactory.getChromosome();
+		// 	if(!(candidate instanceof TestChromosome)){
+		// 		throw new IllegalStateException(this.getClass().getName() + " evolve: adaptive random testing solution " +
+		// 				"currently supported only for evolution of test cases");
+		// 	}
+		// 	candidates.add(candidate);
+		// }
+
+		// // WORK GONE BE DONE HERE FAM
+
+		// logger.info("OUR CANDIDATES LOOKING LIKE THIS FAM FIRST TEN OF THIS TING: ");
+		// for (int i = 0; i < Math.min(10, candidates.size()); i++) {
+		// 	System.out.println(candidates.get(i));
+		// }
+
+		//     // --- ADD THESE LINES *DIRECTLY AFTER* YOUR FOR LOOP ---
+		// String filePath = System.getProperty("user.home") + "/Desktop/candidates_output.txt";
+		// PrintStream originalOut = System.out; // Save the console PrintStream
+
+		// try {
+		// 	// Create a PrintStream that appends to the file
+		// 	PrintStream fileOut = new PrintStream(new FileOutputStream(filePath, true)); // The 'true' is for append mode
+		// 	System.setOut(fileOut); // Redirect System.out to the file
+
+		// 	// REPEAT YOUR FOR LOOP HERE, exactly as it was originally
+		// 	// This is what will now write to the file
+		// 	// If you had a logger.info before, and want it in the file too,
+		// 	// you'd put a System.out.println here instead, like:
+		// 	System.out.println("\n--- START OF NEW CANDIDATE OUTPUT BLOCK ---"); // Optional separator for readability
+		// 	// System.out.println("OUR CANDIDATES LOOKING LIKE THIS FAM FIRST TEN OF THIS TING: "); // If you want this header in the file
+		// 	for (int i = 0; i < Math.min(10, candidates.size()); i++) {
+		// 		System.out.println(candidates.get(i));
+		// 	}
+		// 	System.out.println("--- END OF NEW CANDIDATE OUTPUT BLOCK ---\n"); // Optional separator for readability
+
+
+		// 	fileOut.close(); // Close the file stream to save changes
+		// 	System.setOut(originalOut); // Restore System.out to the console
+
+		// 	// This line will print to the console (because System.out is restored)
+		// 	System.out.println("Candidate output appended to: " + filePath);
+
+		// } catch (FileNotFoundException e) {
+		// 	System.setOut(originalOut); // Crucial: restore System.out even on error
+		// 	System.err.println("ERROR: Could not write to file " + filePath + ": " + e.getMessage());
+		// } catch (Exception e) { // Catch any other unexpected IO errors
+		// 	System.setOut(originalOut);
+		// 	System.err.println("AN UNEXPECTED ERROR OCCURRED: " + e.getMessage());
+		// }
+    	// // --- END OF ADDED LINES ---
+
+		// our supercharged evolve will have first a LLM to generate an enhanced seed, and we gon mutate it with respect the input vectors, 
+		// and the outcome will be test cases that have different but realistc input vectors, this will be tossed in to the distance computation ting
+
+		// PASTE THIS NEW BLOCK IN ITS PLACE
 		int k = Properties.ART_ALGORITHM_NUM_CANDIDATES;
 		List<T> candidates = new ArrayList<T>();
+		logger.info("Generating " + k + " candidate(s) for enhancement...");
+
 		for (int i = 0; i < k; i++) {
 			T candidate = chromosomeFactory.getChromosome();
+
 			if(!(candidate instanceof TestChromosome)){
 				throw new IllegalStateException(this.getClass().getName() + " evolve: adaptive random testing solution " +
 						"currently supported only for evolution of test cases");
 			}
+
+			// --- ENHANCEMENT CALL ---
+			// This is where our new module is called. It enhances the candidate in-place.
+			logger.info("Enhancing candidate " + (i + 1) + "/" + k);
+			this.llmEnhancer.enhanceCandidate((TestChromosome) candidate);
+			// --- END OF ENHANCEMENT CALL ---
+
 			candidates.add(candidate);
 		}
-
 
 		long startDistanceTime = System.nanoTime();
 		//logger.debug("Start distance time computation");
@@ -209,13 +285,17 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 			generateInitialPopulation(1);
 			// Determine fitness
 			calculateFitness();
+			logger.info("MOFL: initializePopulation: test case created " + population.get(0));
 			this.alreadyExecutedTestCases.add(population.get(0));
 		}
+
+		logger.info("MOFL: FUCKING FIRST DAMN TING initializePopulation: test case created " + population.get(0));
 
 		this.notifyIteration();
 	}
 
 	private void createAndMinimizeFirstIndividual(){
+		logger.info("executing createAndMinimizeFirstIndividual function");
 		// Create a random parent population P0
 		generateInitialPopulation(1);
 		// Determine fitness
@@ -232,6 +312,8 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 		}else{
 			this.alreadyExecutedTestCases.add((T) minimizedIndividual);
 		}
+		logger.info("MOFL: initializePopulation: test case created " + (T) minimizedIndividual);
+
 	}
 
 	/* (non-Javadoc)

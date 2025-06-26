@@ -1,27 +1,28 @@
 #!/bin/bash
 stopContainers(){
 	echo "Stopping containers"
-	local alg=$1
-	if [[ $alg == "SUBWEB" ]]; then
-	    docker stop petclinicMosa
-	    docker rm petclinicMosa
-    elif [[ $alg == "DIGS" ]]; then
-        docker stop petclinicAdaptiveSequence
-	    docker rm petclinicAdaptiveSequence
-    elif [[ $alg == "DIGSI" ]]; then
-        docker stop petclinicAdaptiveComplete
-	    docker rm petclinicAdaptiveComplete
-    elif [[ $alg == "ALL" ]]; then
-        docker stop petclinicMosa
-	    docker rm petclinicMosa
-        docker stop petclinicAdaptiveSequence
-	    docker rm petclinicAdaptiveSequence
-	    docker stop petclinicAdaptiveComplete
-	    docker rm petclinicAdaptiveComplete
-    else
-        echo "Unknown alg: $alg"
-        exit 1
-	fi
+	# local alg=$1
+	# if [[ $alg == "SUBWEB" ]]; then
+	#     docker stop petclinicMosa
+	#     docker rm petclinicMosa
+    # elif [[ $alg == "DIGS" ]]; then
+    #     docker stop petclinicAdaptiveSequence
+	#     docker rm petclinicAdaptiveSequence
+    # elif [[ $alg == "DIGSI" ]]; then
+    #     docker stop petclinicAdaptiveComplete
+	#     docker rm petclinicAdaptiveComplete
+    # elif [[ $alg == "ALL" ]]; then
+    #     docker stop petclinicMosa
+	#     docker rm petclinicMosa
+    #     docker stop petclinicAdaptiveSequence
+	#     docker rm petclinicAdaptiveSequence
+	#     docker stop petclinicAdaptiveComplete
+	#     docker rm petclinicAdaptiveComplete
+    # else
+    #     echo "Unknown alg: $alg"
+    #     exit 1
+	# fi
+    docker compose down
 }
 
 if test $# -lt 4 ; then echo 'ARGS: ITERATIONS [num], ALG [SUBWEB|DIGS|DIGSI|ALL], PO [MANUAL|APOGEN], BUDGET [num (seconds)]' ; exit 1 ; fi
