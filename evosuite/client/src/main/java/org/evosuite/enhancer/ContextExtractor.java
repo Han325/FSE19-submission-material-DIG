@@ -2,7 +2,9 @@ package org.evosuite.enhancer;
 
 import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
+import org.evosuite.testcase.statements.ConstructorStatement;
 import org.evosuite.testcase.statements.MethodStatement;
+import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.generic.GenericMethod;
@@ -32,9 +34,9 @@ public class ContextExtractor {
 
             if (statement instanceof MethodStatement) {
                 MethodStatement methodStatement = (MethodStatement) statement;
-                GenericMethod genericMethod = methodStatement.getMethod();
-                if (genericMethod.getMethod().getParameterCount() > 0) {
-                    contexts.addAll(processMethodStatement(methodStatement));
+
+                if (methodStatement.getMethod().getMethod().getParameterCount() > 0) {
+                    contexts.addAll(processMethodStatement(methodStatement, testCase));
                 }
             }
         }
@@ -44,28 +46,23 @@ public class ContextExtractor {
     /**
      * Processes a single MethodStatement to get context for all its parameters.
      */
-    private List<ParameterContext> processMethodStatement(MethodStatement methodStatement) {
+    private List<ParameterContext> processMethodStatement(MethodStatement methodStatement, TestCase testCase) {
         List<ParameterContext> methodContexts = new ArrayList<>();
         GenericMethod genericMethod = methodStatement.getMethod();
         Method javaMethod = genericMethod.getMethod();
 
         Parameter[] parameters = javaMethod.getParameters();
-
-        // --- THIS IS THE CORRECTED LOGIC ---
-        // We use getParameterReferences() which returns an ORDERED LIST of ONLY the parameters.
-        // This is much cleaner and safer than using the unordered Set from getVariableReferences().
         List<VariableReference> paramVarRefs = methodStatement.getParameterReferences();
 
-        // Now, the `parameters` array and `paramVarRefs` list are parallel and have the same size.
-        // We can safely iterate over them together.
         for (int i = 0; i < parameters.length; i++) {
             Parameter param = parameters[i];
-            VariableReference paramVarRef = paramVarRefs.get(i); // Safe indexed access
+            VariableReference paramVarRef = paramVarRefs.get(i);
 
             String methodName = javaMethod.getName();
             String paramName = param.getName();
             Class<?> paramType = param.getType();
-            String initialValueString = getVariableValueAsString(paramVarRef, param.getDeclaringExecutable().getDeclaringClass().getClassLoader());
+            
+            String initialValueString = getVariableValueAsString(paramVarRef, testCase, param.getDeclaringExecutable().getDeclaringClass().getClassLoader());
 
             List<String> enumValues = null;
             if (paramType.isEnum()) {
@@ -85,22 +82,41 @@ public class ContextExtractor {
 
     /**
      * A helper function to get the string representation of a parameter's initial value.
-     * This is the most complex part of the extraction and requires runtime debugging.
      */
-    private String getVariableValueAsString(VariableReference varRef, ClassLoader cl) {
-        // TODO: This is a placeholder for the actual implementation.
-        // The real logic needs to inspect the varRef, find its declaration statement,
-        // and extract the value from that statement (e.g., from a PrimitiveStatement).
-        // This is complex and MUST be developed while debugging at a breakpoint.
-        // For now, we return a clear placeholder.
-        try {
-            if (varRef.isPrimitive()) {
-                // This is still a conceptual placeholder for the logic that needs to be
-                // implemented during a debug session.
-            }
-        } catch (Exception e) {
-            // Fallback
+    private String getVariableValueAsString(VariableReference varRef, TestCase testCase, ClassLoader cl) {
+        return extractValueRecursive(varRef, testCase, 0);
+    }
+
+    /**
+     * Recursively extracts the value of a variable reference.
+     */
+    private String extractValueRecursive(VariableReference varRef, TestCase testCase, int depth) {
+        if (depth > 10) {
+            return "RECURSION_DEPTH_EXCEEDED";
         }
-        return "VALUE_EXTRACTION_TODO: " + varRef.getName();
+
+        Statement declarationStatement = testCase.getStatement(varRef.getStPosition());
+
+        if (declarationStatement instanceof PrimitiveStatement) {
+            PrimitiveStatement<?> primStmt = (PrimitiveStatement<?>) declarationStatement;
+            Object value = primStmt.getValue();
+            if (value == null) {
+                return "null";
+            }
+            return value.toString();
+        }
+
+        if (declarationStatement instanceof ConstructorStatement) {
+            ConstructorStatement consStmt = (ConstructorStatement) declarationStatement;
+
+            if (!consStmt.getParameterReferences().isEmpty()) {
+                VariableReference constructorParamRef = consStmt.getParameterReferences().get(0);
+                return extractValueRecursive(constructorParamRef, testCase, depth + 1);
+            } else {
+                return "new " + consStmt.getDeclaringClassName() + "()";
+            }
+        }
+
+        return "UNHANDLED_TYPE:" + declarationStatement.getClass().getSimpleName();
     }
 }
