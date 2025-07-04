@@ -561,16 +561,16 @@ public class TestFactory {
 	public VariableReference addMethod(TestCase test, GenericMethod method, int position,
 	        int recursionDepth) throws ConstructionFailedException {
 
-		logger.info("MOFL: ADD METHOD ONLY FUNCTION TESTING");
-		logger.info("Method being generated: " + method.getName() + "\n");
-		logger.info("Class: " + method.getDeclaringClass().getName() + "\n");
-		logger.info("Return Type: " + method.getReturnType().getTypeName() + "\n");
-		logger.info("Parameters:\n");
-		for (java.lang.reflect.Parameter param : method.getMethod().getParameters()) {
-        	logger.info(String.format("  - Type: %s, Name: %s\n", param.getType().getSimpleName(), param.getName()));
-    	}
-		logger.info("position: " + position + "\n");
-		logger.info("Partial Path so far (" + test.size() + " statements):\n" + test.toCode());
+		// logger.info("MOFL: ADD METHOD ONLY FUNCTION TESTING");
+		// logger.info("Method being generated: " + method.getName() + "\n");
+		// logger.info("Class: " + method.getDeclaringClass().getName() + "\n");
+		// logger.info("Return Type: " + method.getReturnType().getTypeName() + "\n");
+		// logger.info("Parameters:\n");
+		// for (java.lang.reflect.Parameter param : method.getMethod().getParameters()) {
+        // 	logger.info(String.format("  - Type: %s, Name: %s\n", param.getType().getSimpleName(), param.getName()));
+    	// }
+		// logger.info("position: " + position + "\n");
+		// logger.info("Partial Path so far (" + test.size() + " statements):\n" + test.toCode());
 
 		logger.debug("Recursion depth: " + recursionDepth);
 		if (recursionDepth > Properties.MAX_RECURSION) {
@@ -696,19 +696,19 @@ public class TestFactory {
 	public VariableReference addMethodFor(TestCase test, VariableReference callee,
 	        GenericMethod method, int position) throws ConstructionFailedException {
 
-		logger.debug("Adding method {} for {} (Generating {})",method,callee,method.getGeneratedClass());
+		// logger.debug("Adding method {} for {} (Generating {})",method,callee,method.getGeneratedClass());
 
-		logger.info("MOFL: ADD METHOD FOR FUNCTION TESTING");
-		logger.info("Method being generated: " + method.getName() + "\n");
-		logger.info("Class: " + method.getDeclaringClass().getName() + "\n");
-		logger.info("Return Type: " + method.getReturnType().getTypeName() + "\n");
-		logger.info("Parameters:\n");
-		for (java.lang.reflect.Parameter param : method.getMethod().getParameters()) {
-        	logger.info(String.format("  - Type: %s, Name: %s\n", param.getType().getSimpleName(), param.getName()));
-    	}
-		logger.info("Variable callee: " + callee.getName() + "\n");
-		logger.info("position: " + position + "\n");
-		logger.info("Partial Path so far (" + test.size() + " statements):\n" + test.toCode());
+		// logger.info("MOFL: ADD METHOD FOR FUNCTION TESTING");
+		// logger.info("Method being generated: " + method.getName() + "\n");
+		// logger.info("Class: " + method.getDeclaringClass().getName() + "\n");
+		// logger.info("Return Type: " + method.getReturnType().getTypeName() + "\n");
+		// logger.info("Parameters:\n");
+		// for (java.lang.reflect.Parameter param : method.getMethod().getParameters()) {
+        // 	logger.info(String.format("  - Type: %s, Name: %s\n", param.getType().getSimpleName(), param.getName()));
+    	// }
+		// logger.info("Variable callee: " + callee.getName() + "\n");
+		// logger.info("position: " + position + "\n");
+		// logger.info("Partial Path so far (" + test.size() + " statements):\n" + test.toCode());
 
 
 		if(position <= callee.getStPosition()) {
@@ -2571,7 +2571,7 @@ public class TestFactory {
 		}
 
 		logger.debug("Satisfied {} parameters", parameterTypes.size());
-		logger.info("MOFL: DEM PARAMETERS IS DIS TING FAM " + parameters);
+		// logger.info("MOFL: DEM PARAMETERS IS DIS TING FAM " + parameters);
 		return parameters;
 	}
 

@@ -1,21 +1,32 @@
 package custom_classes;
 
 import po_utils.TestData;
+import java.util.Random;
 
-public enum Goals implements TestData {
+public class Goals implements TestData {
 
-    SKI ("ski"),
-    MUSEUM ("museum"),
-    HOUSE ("house"),
-    CAR ("car");
+    // public static final Goals SKI = new Goals("ski");
+    // public static final Goals MUSEUM = new Goals("museum");
+    // public static final Goals HOUSE = new Goals("house");
+    // public static final Goals CAR = new Goals("car");
+    public final String value;
 
-    private final String goal;
+    private static final String[] placeholders = {
+        "ski",
+        "museum",
+        "house",
+        "car"
+    };
 
-    Goals(String goal){
-        this.goal = goal;
+    private Goals(String goalString) {
+        this.value = goalString;
     }
 
-    public String value(){
-        return this.goal;
+    public static Goals fromString(String s) {
+        return new Goals(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

@@ -20,7 +20,8 @@ public class ClassUnderTestApogen {
 		navbarComponent.goToRegisterPage();
 		po.home.pages.RegisterPage registerPage = new po.home.pages.RegisterPage(
 				driver);
-		registerPage.register(Username.ASD, Email.ASD, Password.ASD);
+		Email ASD = Email.fromString("asd@asd.com");
+		registerPage.register(Username.ASD, ASD, Password.ASD);
 		this.currentPage = new po_apogen.WalletPage(driver);
 	}
 

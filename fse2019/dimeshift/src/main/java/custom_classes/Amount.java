@@ -1,16 +1,29 @@
+// The NEW, aight custom_classes/Amount.java
 package custom_classes;
 
-import po_utils.IntRange;
-import po_utils.Range;
 import po_utils.TestData;
+import java.util.Random;
 
-public class Amount extends Range implements IntRange, TestData {
+public class Amount implements TestData {
 
-    private final int lower = 1;
-    private final int upper = 1000;
-    public final int value;
+    // The core value field - now a double for realistic money
+    public final double value;
 
-    public Amount(int i){
-        this.value = this.map(i, lower, upper);
+    // The private constructor
+    private Amount(double amountValue) {
+        this.value = amountValue;
+    }
+
+    // The LLM's Door: Creates an Amount from any string.
+    public static Amount fromString(String s) {
+        // Use Double.parseDouble to handle values like "125.50"
+        return new Amount(Double.parseDouble(s));
+    }
+
+    // The Page Object compatibility method. Now returns double.
+    // NOTE: The Page Object method `typeJS` will need to handle a double.
+    // `String.valueOf(amount.value())` will work perfectly.
+    public double value() {
+        return this.value;
     }
 }

@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 public class OllamaClient {
 
     private static final Logger logger = LoggerFactory.getLogger(OllamaClient.class);
-    // --- IMPORTANT: CHANGE THIS TO YOUR MAC'S IP ADDRESS ---
+    // --- IMPORTANT: CHANGE THIS TO YOUR DEVICE IP ADDRESS ---
     private static final String OLLAMA_HOST_IP = "10.0.2.2"; // Changed from "192.168.64.1"
     
     private static final String OLLAMA_API_URL = "http://" + OLLAMA_HOST_IP + ":11434/api/generate";

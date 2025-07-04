@@ -1,4 +1,3 @@
-// IN FILE: PromptLogger.java
 package org.evosuite.enhancer;
 
 import java.io.FileWriter;

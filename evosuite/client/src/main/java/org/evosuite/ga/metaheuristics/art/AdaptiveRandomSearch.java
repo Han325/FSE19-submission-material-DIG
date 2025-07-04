@@ -201,6 +201,13 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 			candidates.add(candidate);
 		}
 
+			// System.out.println("\n--- START OF NEW CANDIDATE OUTPUT BLOCK ---"); // Optional separator for readability
+			// System.out.println("OUR CANDIDATES LOOKING LIKE THIS FAM FIRST FIVE OF THIS TING: "); // If you want this header in the file
+			// for (int i = 0; i < Math.min(5, candidates.size()); i++) {
+			// 	System.out.println(candidates.get(i));
+			// }
+			// System.out.println("--- END OF NEW CANDIDATE OUTPUT BLOCK ---\n"); // Optional separator for readability
+
 		long startDistanceTime = System.nanoTime();
 		//logger.debug("Start distance time computation");
 		DistanceComputation<T> distanceComputation = new DistanceComputation<>(candidates,alreadyExecutedTestCases,currentIteration);
@@ -289,7 +296,7 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 			this.alreadyExecutedTestCases.add(population.get(0));
 		}
 
-		logger.info("MOFL: FUCKING FIRST DAMN TING initializePopulation: test case created " + population.get(0));
+		logger.info("MOFL: FIRST DAMN TING initializePopulation: test case created " + population.get(0));
 
 		this.notifyIteration();
 	}
