@@ -24,6 +24,7 @@ package org.evosuite.ga.metaheuristics.art;
 
 import org.evosuite.ProgressMonitor;
 import org.evosuite.Properties;
+import org.evosuite.enhancer.GeneticImprover;
 // NEW TINGS
 import org.evosuite.enhancer.LLMInputEnhancer; 
 import org.evosuite.coverage.FitnessFunctions;
@@ -68,7 +69,9 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 
 	private static final Logger logger = LoggerFactory.getLogger(AdaptiveRandomSearch.class);
 
-	private final LLMInputEnhancer llmEnhancer; // <--- ADD THIS LINE
+	private final LLMInputEnhancer llmEnhancer; 
+    private final GeneticImprover geneticImprover; 
+
 
 	/** Map used to store the covered test goals (keys of the map) and the corresponding covering test cases (values of the map) **/
 	protected Map<FitnessFunction<T>, T> archive = new  HashMap<FitnessFunction<T>, T>();
@@ -111,6 +114,7 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 					+ criteria);
 		}
 		this.llmEnhancer = new LLMInputEnhancer();
+		this.geneticImprover = new GeneticImprover();
 
 	}
 
@@ -201,13 +205,16 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 			candidates.add(candidate);
 		}
 
-			// System.out.println("\n--- START OF NEW CANDIDATE OUTPUT BLOCK ---"); // Optional separator for readability
-			// System.out.println("OUR CANDIDATES LOOKING LIKE THIS FAM FIRST FIVE OF THIS TING: "); // If you want this header in the file
-			// for (int i = 0; i < Math.min(5, candidates.size()); i++) {
-			// 	System.out.println(candidates.get(i));
-			// }
-			// System.out.println("--- END OF NEW CANDIDATE OUTPUT BLOCK ---\n"); // Optional separator for readability
+		// THIS IS WHERE YOUR GI SHIT COMES IN
+		int variationsPerSeed = 5; // This should be a Property later
+        if(true){
+            logger.info("Handing off " + candidates.size() + " seeds to the Genetic Improver.");
+            // The GI module takes the k seeds and returns a k * m supercharged population
+            candidates = (List<T>) this.geneticImprover.diversifyPopulation((List<TestChromosome>) candidates, variationsPerSeed);
+            logger.info("Genetic Improver returned a supercharged population of " + candidates.size() + " candidates.");
+        }
 
+			
 		long startDistanceTime = System.nanoTime();
 		//logger.debug("Start distance time computation");
 		DistanceComputation<T> distanceComputation = new DistanceComputation<>(candidates,alreadyExecutedTestCases,currentIteration);

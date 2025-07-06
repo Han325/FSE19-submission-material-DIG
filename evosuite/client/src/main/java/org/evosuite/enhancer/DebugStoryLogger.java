@@ -102,6 +102,31 @@ public class DebugStoryLogger {
                 candidateId, applied, skipped, failed));
     }
 
+     public static void logGIPhaseStart(int numSeeds, int variationsPerSeed, boolean isDryRun) {
+        String dryRunMessage = isDryRun ? " [DRY RUN]" : "";
+        log(String.format("==================== [PHASE B] STARTING GENETIC DIVERSIFICATION%s ====================", dryRunMessage));
+        log(String.format("Processing %d seeds to generate %d variations each.", numSeeds, variationsPerSeed));
+    }
+
+    public static void logGISeedProcessingStart(int seedId, int seedNum, int totalSeeds) {
+        log(String.format("\n--- Diversifying Seed #%d (Seed %d of %d) ---", seedId, seedNum, totalSeeds));
+    }
+
+    public static void logGIAuditionStart(int poolSize) {
+        log("GI AUDITION: Generating " + poolSize + " potential mutations for this seed...");
+    }
+
+    public static void logGISelection(int variationNum, int totalVariations, String mutationType, double distance) {
+        log(String.format("GI SELECTION (%d/%d): Chose candidate with mutation '%s'. Min-Distance to family: %.4f",
+            variationNum, totalVariations, mutationType, distance));
+    }
+
+    public static void logGIPhaseEnd(int totalPopulationSize) {
+        log(String.format("\n==================== [PHASE B] DIVERSIFICATION COMPLETE ===================="));
+        log("Final supercharged population size: " + totalPopulationSize);
+    }
+
+
     /**
      * The core private method that handles writing to the file safely.
      */
