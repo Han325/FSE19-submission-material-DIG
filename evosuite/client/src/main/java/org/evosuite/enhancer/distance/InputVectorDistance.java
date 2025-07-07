@@ -1,8 +1,10 @@
 package org.evosuite.enhancer.distance;
 
+import org.evosuite.enhancer.ContextExtractor;
 import org.evosuite.enhancer.VariableUsageContext;
+import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
-import org.evosuite.testcase.statements.EnumPrimitiveStatement;
+import org.evosuite.testcase.statements.MethodStatement;
 import org.evosuite.testcase.statements.PrimitiveStatement;
 import org.evosuite.testcase.statements.Statement;
 import org.evosuite.testcase.variable.VariableReference;
@@ -17,10 +19,11 @@ import java.util.Map;
  */
 public class InputVectorDistance {
 
-    private final List<VariableUsageContext> semanticContexts;
+    // This is only used to know the full set of semantic variables we are interested in.
+    private final List<VariableUsageContext> seedSemanticContexts;
 
     public InputVectorDistance(List<VariableUsageContext> semanticContexts) {
-        this.semanticContexts = semanticContexts;
+        this.seedSemanticContexts = semanticContexts;
     }
 
     /**
@@ -30,58 +33,79 @@ public class InputVectorDistance {
      * @return A distance score between 0.0 and 1.0 per variable, summed up.
      */
     public double calculate(TestChromosome c1, TestChromosome c2) {
-        if (semanticContexts == null || semanticContexts.isEmpty()) {
+        if (seedSemanticContexts == null || seedSemanticContexts.isEmpty()) {
             return 0.0;
         }
 
-        Map<String, PrimitiveStatement<?>> vector1 = getSemanticPrimitiveVector(c1);
-        Map<String, PrimitiveStatement<?>> vector2 = getSemanticPrimitiveVector(c2);
+        // --- NEW, LIVE LOGIC ---
+        // Generate a fresh, live vector for each chromosome, every time.
+        Map<String, PrimitiveStatement<?>> vector1 = getLiveSemanticPrimitiveVector(c1);
+        Map<String, PrimitiveStatement<?>> vector2 = getLiveSemanticPrimitiveVector(c2);
 
         double totalDistance = 0.0;
+        int variablesCompared = 0;
 
-        for (VariableUsageContext context : semanticContexts) {
-            String varName = context.getSemanticVariable().getName();
-            
-            PrimitiveStatement<?> p1 = vector1.get(varName);
-            PrimitiveStatement<?> p2 = vector2.get(varName);
+        // Compare based on the variables found in the first vector.
+        for (String varName : vector1.keySet()) {
+            if (vector2.containsKey(varName)) {
+                PrimitiveStatement<?> p1 = vector1.get(varName);
+                PrimitiveStatement<?> p2 = vector2.get(varName);
 
-            if (p1 != null && p2 != null) {
-                totalDistance += getNormalizedDistance(p1, p2);
+                if (p1 != null && p2 != null) {
+                    totalDistance += getNormalizedDistance(p1, p2);
+                    variablesCompared++;
+                }
             }
         }
         
-        // Normalize by the number of variables to keep the distance score consistent
-        return totalDistance / semanticContexts.size();
+        if (variablesCompared == 0) return 0.0;
+        
+        // Normalize by the number of variables we successfully compared.
+        return totalDistance / variablesCompared;
     }
 
     /**
-     * Extracts a map of semantic variable names to their root primitive statements.
+     * Extracts a map of semantic variable names to their LIVE root primitive statements
+     * by re-running the context extraction and tracing logic on the fly.
      */
-    private Map<String, PrimitiveStatement<?>> getSemanticPrimitiveVector(TestChromosome chromosome) {
+    private Map<String, PrimitiveStatement<?>> getLiveSemanticPrimitiveVector(TestChromosome chromosome) {
         Map<String, PrimitiveStatement<?>> vector = new HashMap<>();
-        // This is a simplified stand-in for the real logic which would re-run
-        // a lightweight context extraction or use a cached version.
-        // For now, we assume we can find the primitives based on the context.
-        for (VariableUsageContext context : semanticContexts) {
-             // In a real implementation, we would need a robust way to find the *new*
-             // primitive statement in the *cloned* chromosome. This is a complex problem.
-             // For this blueprint, we'll assume a direct mapping can be found.
-             // A real solution might involve tagging statements.
-             Statement stmt = chromosome.getTestCase().getStatement(context.getDeclarationStatement().getPosition());
-             if (stmt instanceof PrimitiveStatement){
-                 vector.put(context.getSemanticVariable().getName(), (PrimitiveStatement<?>) stmt);
-             }
+        ContextExtractor extractor = new ContextExtractor();
+        List<VariableUsageContext> liveContexts = extractor.extractContexts(chromosome);
+
+        for (VariableUsageContext liveContext : liveContexts) {
+            PrimitiveStatement<?> rootPrimitive = findRootPrimitive(chromosome.getTestCase(), liveContext.getDeclarationStatement());
+            if (rootPrimitive != null) {
+                vector.put(liveContext.getSemanticVariable().getName(), rootPrimitive);
+            }
         }
         return vector;
+    }
+
+    private PrimitiveStatement<?> findRootPrimitive(TestCase testCase, Statement startNode) {
+        return findRootRecursive(testCase, startNode, 0);
+    }
+    
+    private PrimitiveStatement<?> findRootRecursive(TestCase testCase, Statement stmt, int depth) {
+        if (depth > 15) return null;
+        if (stmt instanceof PrimitiveStatement) return (PrimitiveStatement<?>) stmt;
+
+        if (stmt instanceof MethodStatement) {
+            MethodStatement ms = (MethodStatement) stmt;
+            if (ms.getMethodName().equals("fromString") && !ms.getParameterReferences().isEmpty()) {
+                VariableReference param = ms.getParameterReferences().get(0);
+                return findRootRecursive(testCase, testCase.getStatement(param.getStPosition()), depth + 1);
+            }
+        }
+        return null;
     }
 
     private double getNormalizedDistance(PrimitiveStatement<?> p1, PrimitiveStatement<?> p2) {
         Object val1 = p1.getValue();
         Object val2 = p2.getValue();
 
-        if (val1.equals(val2)) {
-            return 0.0;
-        }
+        if (val1 == null || val2 == null) return val1 == val2 ? 0.0 : 1.0;
+        if (val1.equals(val2)) return 0.0;
 
         if (val1 instanceof String) {
             int levDistance = Levenshtein.computeDistance((String) val1, (String) val2);
@@ -99,21 +123,20 @@ public class InputVectorDistance {
         }
 
         if (val1 instanceof Enum) {
-            // It's a different enum constant, so distance is 1.0
             return 1.0;
         }
 
-        return 1.0; // Default distance for unhandled or different types
+        return 1.0;
     }
 
     private double normalize(double value) {
-        // Standard normalization function: d / (d + 1)
         return value / (value + 1.0);
     }
     
-    // Inner static class for Levenshtein distance utility
     private static class Levenshtein {
         public static int computeDistance(String s1, String s2) {
+            if (s1 == null) s1 = "";
+            if (s2 == null) s2 = "";
             s1 = s1.toLowerCase();
             s2 = s2.toLowerCase();
 

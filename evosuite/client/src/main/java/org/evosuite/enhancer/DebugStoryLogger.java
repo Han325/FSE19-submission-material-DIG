@@ -126,6 +126,14 @@ public class DebugStoryLogger {
         log("Final supercharged population size: " + totalPopulationSize);
     }
 
+    /**
+     * A new, dedicated channel for ultra-detailed trace logs.
+     * @param message The trace message to log.
+     */
+    public static void trace(String message) {
+        log("[TRACE] " + message);
+    }
+
 
     /**
      * The core private method that handles writing to the file safely.

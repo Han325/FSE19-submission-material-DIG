@@ -1,13 +1,10 @@
 package org.evosuite.enhancer;
 
 import org.evosuite.enhancer.distance.InputVectorDistance;
+import org.evosuite.testcase.TestCase;
 import org.evosuite.testcase.TestChromosome;
-import org.evosuite.testcase.statements.EnumPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.IntPrimitiveStatement;
-import org.evosuite.testcase.statements.numeric.DoublePrimitiveStatement;
-import org.evosuite.testcase.statements.PrimitiveStatement;
-import org.evosuite.testcase.statements.Statement;
-import org.evosuite.testcase.statements.StringPrimitiveStatement;
+import org.evosuite.testcase.statements.*;
+import org.evosuite.testcase.variable.VariableReference;
 import org.evosuite.utils.Randomness;
 
 import java.util.ArrayList;
@@ -22,15 +19,13 @@ import java.util.Set;
 public class GeneticImprover {
 
     // --- MASTER SWITCHES ---
-    private static final boolean DEEP_DIVE_MODE = true; // SET TO true FOR DETAILED LOGGING OF ONE CANDIDATE
-    private static final boolean DRY_RUN = false;      // Master switch for GI phase
+    private static final boolean DEEP_DIVE_MODE = false;           // SET TO true FOR DETAILED LOGGING OF ONE CANDIDATE
+    private static final boolean TRACE_MUTATION_ATTEMPTS = false;  // SET TO true FOR ULTRA-DETAILED MUTATION TRACING
+    private static final boolean DRY_RUN = false;                 // Master switch for GI phase
 
     private static final int AUDITION_POOL_SIZE = 20;    // Number of random mutations to generate per seed
     private static final int MAX_AUDITION_ATTEMPTS = 100; // Prevents infinite loops
 
-    /**
-     * A simple inner class to pair a mutated chromosome with the description of how it was mutated.
-     */
     private static class MutationResult {
         final TestChromosome chromosome;
         final String description;
@@ -42,26 +37,17 @@ public class GeneticImprover {
     }
 
     public GeneticImprover() {
-        // Constructor for the GI module
     }
 
-    /**
-     * The main entry point for Phase B.
-     * @param seeds The list of k LLM-blessed candidates.
-     * @param variationsPerSeed The number of m diverse variations to create for each seed.
-     * @return A new, larger list of k * m "supercharged" candidates.
-     */
     public List<TestChromosome> diversifyPopulation(List<TestChromosome> seeds, int variationsPerSeed) {
         if (DEEP_DIVE_MODE) {
             runDeepDive(seeds);
-            // In deep dive mode, we don't generate a population, we just log.
-            // Return the original seeds so the process can continue without error.
             return seeds;
         }
         
         if (DRY_RUN) {
             DebugStoryLogger.logGIPhaseStart(seeds.size(), variationsPerSeed, true);
-            return seeds; // Return original seeds if dry run
+            return seeds;
         }
 
         DebugStoryLogger.logGIPhaseStart(seeds.size(), variationsPerSeed, false);
@@ -88,17 +74,12 @@ public class GeneticImprover {
         return superchargedPopulation;
     }
 
-    /**
-     * A special debugging mode that produces extremely detailed logs for a single candidate.
-     * @param seeds The full list of seeds to select from.
-     */
     private void runDeepDive(List<TestChromosome> seeds) {
         if (seeds.isEmpty()) {
             DebugStoryLogger.log("DEEP DIVE: Seed list is empty. Aborting.");
             return;
         }
 
-        // Find the seed with the most potential mutation targets
         TestChromosome targetSeed = null;
         List<VariableUsageContext> targetContexts = new ArrayList<>();
         int maxPrimitives = -1;
@@ -140,7 +121,7 @@ public class GeneticImprover {
         diverseFamily.add(targetSeed);
         InputVectorDistance distanceCalculator = new InputVectorDistance(targetContexts);
 
-        for(int i = 1; i < 5; i++) { // Generate a family of 5
+        for(int i = 1; i < 5; i++) {
             DebugStoryLogger.log(String.format("\n--- Selecting Family Member #%d ---", i+1));
             MutationResult bestResult = null;
             double maxMinDistance = -1.0;
@@ -180,19 +161,15 @@ public class GeneticImprover {
         DebugStoryLogger.log("==================== [DEEP DIVE COMPLETE] ====================");
     }
 
-
     private List<TestChromosome> selectDiverseFamily(TestChromosome seed, int familySize, List<VariableUsageContext> semanticContexts) {
         List<TestChromosome> diverseFamily = new ArrayList<>();
         diverseFamily.add(seed);
-
         InputVectorDistance distanceCalculator = new InputVectorDistance(semanticContexts);
-
         List<MutationResult> auditionPool = createAuditionPool(seed, semanticContexts);
 
         while (diverseFamily.size() < familySize && !auditionPool.isEmpty()) {
             MutationResult bestResult = null;
             double maxMinDistance = -1.0;
-
             for (MutationResult result : auditionPool) {
                 double minDistanceToFamily = Double.MAX_VALUE;
                 for (TestChromosome familyMember : diverseFamily) {
@@ -201,13 +178,11 @@ public class GeneticImprover {
                         minDistanceToFamily = dist;
                     }
                 }
-
                 if (minDistanceToFamily > maxMinDistance) {
                     maxMinDistance = minDistanceToFamily;
                     bestResult = result;
                 }
             }
-
             if (bestResult != null) {
                 DebugStoryLogger.logGISelection(diverseFamily.size() + 1, familySize, bestResult.description, maxMinDistance);
                 diverseFamily.add(bestResult.chromosome);
@@ -224,14 +199,17 @@ public class GeneticImprover {
         List<MutationResult> pool = new ArrayList<>();
         Set<String> seenChromosomes = new HashSet<>();
         seenChromosomes.add(seed.getTestCase().toCode());
-
         int attempts = 0;
         while (pool.size() < AUDITION_POOL_SIZE && attempts < MAX_AUDITION_ATTEMPTS) {
             TestChromosome clone = (TestChromosome) seed.clone();
-            String mutationDescription = applyRandomMutation(clone, semanticContexts);
-
-            if (mutationDescription != null && seenChromosomes.add(clone.getTestCase().toCode())) {
-                pool.add(new MutationResult(clone, mutationDescription));
+            String mutationDescription = applyRandomMutation(clone, semanticContexts, attempts + 1);
+            if (mutationDescription != null) {
+                if (seenChromosomes.add(clone.getTestCase().toCode())) {
+                    if (TRACE_MUTATION_ATTEMPTS) DebugStoryLogger.trace("createAuditionPool: New unique mutation found. Adding to pool (Size: " + (pool.size() + 1) + ").");
+                    pool.add(new MutationResult(clone, mutationDescription));
+                } else {
+                    if (TRACE_MUTATION_ATTEMPTS) DebugStoryLogger.trace("createAuditionPool: Duplicate mutation generated. Discarding.");
+                }
             }
             attempts++;
         }
@@ -239,193 +217,172 @@ public class GeneticImprover {
     }
 
     // --- START OF SURGICAL STRIKE ---
-    // THIS IS THE NEW, FIXED-UP MUTATION LOGIC
-    private String applyRandomMutation(TestChromosome chromosome, List<VariableUsageContext> semanticContexts) {
+    private String applyRandomMutation(TestChromosome chromosome, List<VariableUsageContext> semanticContexts, int attemptNum) {
         if (semanticContexts.isEmpty()) return null;
 
+        if (TRACE_MUTATION_ATTEMPTS) DebugStoryLogger.trace(String.format("\n// --- Attempt %d/%d ---", attemptNum, MAX_AUDITION_ATTEMPTS));
         VariableUsageContext targetContext = Randomness.choice(semanticContexts);
-        Statement stmt = chromosome.getTestCase().getStatement(targetContext.getDeclarationStatement().getPosition());
+        if (TRACE_MUTATION_ATTEMPTS) DebugStoryLogger.trace("applyRandomMutation: Chose semantic context for '" + targetContext.getSemanticVariable().getName() + "' (" + targetContext.getSemanticVariableType() + ").");
 
-        if (!(stmt instanceof PrimitiveStatement)) {
+        Statement declarationStatement = chromosome.getTestCase().getStatement(targetContext.getDeclarationStatement().getPosition());
+
+        // --- NEW LOGIC ---
+        // Case 1: Simple Enum Mutation
+        if (declarationStatement instanceof EnumPrimitiveStatement) {
+            if (TRACE_MUTATION_ATTEMPTS) DebugStoryLogger.trace("applyRandomMutation: Declaration is an ENUM. Applying direct mutation...");
+            return mutateEnum((EnumPrimitiveStatement) declarationStatement);
+        }
+
+        // Case 2: Smart Duplication for MethodStatements
+        if (declarationStatement instanceof MethodStatement) {
+            if (TRACE_MUTATION_ATTEMPTS) DebugStoryLogger.trace("applyRandomMutation: Declaration is a MethodStatement. Applying 'Smart Duplication' surgery...");
+            return mutateBySmartDuplication(chromosome.getTestCase(), (MethodStatement) declarationStatement);
+        }
+
+        if (TRACE_MUTATION_ATTEMPTS) DebugStoryLogger.trace("applyRandomMutation: FAILED. Unhandled declaration type: " + declarationStatement.getClass().getSimpleName());
+        return null;
+    }
+
+    private String mutateBySmartDuplication(TestCase testCase, MethodStatement methodStmt) {
+        // Step 1: Find the original root primitive by tracing back
+        PrimitiveStatement<?> originalPrimitive = findRootPrimitive(testCase, methodStmt);
+        if (originalPrimitive == null) {
+            if (TRACE_MUTATION_ATTEMPTS) DebugStoryLogger.trace("mutateBySmartDuplication: FAILED. Could not trace back to a root primitive from " + methodStmt.getCode());
             return null;
         }
-        PrimitiveStatement<?> primitive = (PrimitiveStatement<?>) stmt;
+        if (TRACE_MUTATION_ATTEMPTS) DebugStoryLogger.trace("mutateBySmartDuplication: Found root primitive: " + originalPrimitive.getCode());
 
-        // "Parse & Detect" Gauntlet
-        if (primitive instanceof EnumPrimitiveStatement) {
-            return mutateEnum(primitive);
-        } else if (primitive instanceof IntPrimitiveStatement || primitive instanceof DoublePrimitiveStatement) {
-            return mutateRawNumeric(primitive);
-        } else if (primitive instanceof StringPrimitiveStatement) {
+        // Step 2: Generate a new mutated value based on the type of the original's value
+        String newValue = generateMutatedValue(originalPrimitive);
+        if (newValue == null) {
+            if (TRACE_MUTATION_ATTEMPTS) DebugStoryLogger.trace("mutateBySmartDuplication: FAILED. Mutation resulted in no change.");
+            return null;
+        }
+        
+        // Step 3: Perform the "Smart Duplication" surgery
+        try {
+            int position = methodStmt.getPosition();
+            StringPrimitiveStatement newPrimitiveStmt = new StringPrimitiveStatement(testCase, newValue);
+            testCase.addStatement(newPrimitiveStmt, position);
+            methodStmt.replaceParameterReference(newPrimitiveStmt.getReturnValue(), 0);
+            
+            // Step 4: Cleanup
+            cleanupDeadStatements(testCase);
+
+            // For logging purposes, let's create a description
+            String originalValue = originalPrimitive.getValue().toString();
+            String varName = methodStmt.getReturnValue().getName();
+            return String.format("Mutated '%s' via SMART_DUPLICATION from '%s' to '%s'", varName, originalValue, newValue);
+        } catch (Exception e) {
+            if (TRACE_MUTATION_ATTEMPTS) DebugStoryLogger.trace("mutateBySmartDuplication: FAILED during surgery. " + e.getMessage());
+            return null;
+        }
+    }
+
+    private String generateMutatedValue(PrimitiveStatement<?> primitive) {
+        if (primitive instanceof StringPrimitiveStatement) {
             String value = (String) primitive.getValue();
             if (isNumeric(value)) {
-                return mutateNumericString(primitive);
+                return mutateNumericStringValue(value);
             } else {
-                return mutateAlphanumericString(primitive);
+                return mutateAlphanumericStringValue(value);
+            }
+        }
+        // Can be extended for raw numerics if needed, but current logic handles strings
+        return null;
+    }
+
+    private PrimitiveStatement<?> findRootPrimitive(TestCase testCase, Statement startNode) {
+        return findRootRecursive(testCase, startNode, 0);
+    }
+    
+    private PrimitiveStatement<?> findRootRecursive(TestCase testCase, Statement stmt, int depth) {
+        if (depth > 15) return null;
+        if (stmt instanceof PrimitiveStatement) return (PrimitiveStatement<?>) stmt;
+
+        if (stmt instanceof MethodStatement) {
+            MethodStatement ms = (MethodStatement) stmt;
+            if (!ms.getParameterReferences().isEmpty()) {
+                VariableReference param = ms.getParameterReferences().get(0);
+                return findRootRecursive(testCase, testCase.getStatement(param.getStPosition()), depth + 1);
             }
         }
         return null;
     }
 
-    private boolean isNumeric(String str) {
-        if (str == null || str.isEmpty()) {
-            return false;
+    private void cleanupDeadStatements(TestCase testCase) {
+        for (int i = testCase.size() - 1; i >= 0; i--) {
+            Statement currentStatement = testCase.getStatement(i);
+            if (!(currentStatement instanceof PrimitiveStatement)) continue;
+            
+            if (!testCase.hasReferences(currentStatement.getReturnValue())) {
+                if (TRACE_MUTATION_ATTEMPTS) DebugStoryLogger.trace("cleanupDeadStatements: Removing dead primitive: " + currentStatement.getCode());
+                testCase.remove(i);
+            }
         }
+    }
+
+    // --- VALUE GENERATION HELPERS (These now return values, not modify statements) ---
+    private String mutateNumericStringValue(String currentValue) {
+        double currentDouble = Double.parseDouble(currentValue);
+        int mutationType = Randomness.nextInt(4);
+        double newDouble = currentDouble;
+        switch (mutationType) {
+            case 0: newDouble++; break;
+            case 1: newDouble--; break;
+            case 2: newDouble *= -1; break;
+            default:
+                List<Double> boundaries = new ArrayList<>();
+                boundaries.add(0.0); boundaries.add(1.0); boundaries.add(-1.0);
+                newDouble = Randomness.choice(boundaries);
+                break;
+        }
+        return currentValue.contains(".") ? String.valueOf(newDouble) : String.valueOf((int)newDouble);
+    }
+
+    private String mutateAlphanumericStringValue(String currentValue) {
+        int mutationType = Randomness.nextInt(3);
+        switch (mutationType) {
+            case 0: return "";
+            case 1:
+                if (!currentValue.isEmpty()) {
+                    int pos = Randomness.nextInt(currentValue.length());
+                    char randomChar = (char) (Randomness.nextInt(95) + 32);
+                    StringBuilder sb = new StringBuilder(currentValue);
+                    sb.setCharAt(pos, randomChar);
+                    return sb.toString();
+                }
+                return currentValue;
+            default:
+                String specialChars = "!@#$%^&*()_+-=[]{}|;:',.<>/?`~";
+                char special = specialChars.charAt(Randomness.nextInt(specialChars.length()));
+                int pos = currentValue.isEmpty() ? 0 : Randomness.nextInt(currentValue.length() + 1);
+                StringBuilder sb = new StringBuilder(currentValue);
+                sb.insert(pos, special);
+                return sb.toString();
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private String mutateEnum(EnumPrimitiveStatement primitive) {
+        String varName = primitive.getReturnValue().getName();
+        List<Enum> constants = new ArrayList<>(primitive.getEnumValues());
+        if (constants.size() <= 1) return null;
+        Enum currentValue = (Enum) primitive.getValue();
+        constants.remove(currentValue);
+        Enum newValue = Randomness.choice(constants);
+        primitive.setValue(newValue);
+        return String.format("Mutated ENUM '%s' from '%s' to '%s' via SWITCH_ENUM", varName, currentValue.name(), newValue.name());
+    }
+
+    // --- OLD HELPERS (kept for reference, but no longer used by the main path) ---
+    private boolean isNumeric(String str) {
+        if (str == null || str.isEmpty()) return false;
         try {
             Double.parseDouble(str);
             return true;
         } catch (NumberFormatException e) {
             return false;
         }
-    }
-
-    // --- NEW, SMARTER MUTATION OPERATORS ---
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private String mutateRawNumeric(PrimitiveStatement primitive) {
-        // This handles raw int, double, etc.
-        Number currentValue = (Number) primitive.getValue();
-        String varName = primitive.getReturnValue().getName();
-        int mutationType = Randomness.nextInt(4);
-        Number newValue = currentValue;
-        String operatorName;
-
-        // For simplicity, we'll work with doubles and cast back
-        double currentDouble = currentValue.doubleValue();
-        double newDouble = currentDouble;
-
-        switch (mutationType) {
-            case 0:
-                operatorName = "INCREMENT";
-                newDouble = currentDouble + 1.0;
-                break;
-            case 1:
-                operatorName = "DECREMENT";
-                newDouble = currentDouble - 1.0;
-                break;
-            case 2:
-                operatorName = "NEGATE";
-                newDouble = currentDouble * -1.0;
-                break;
-            default:
-                operatorName = "SET_TO_BOUNDARY";
-                List<Double> boundaries = new ArrayList<>();
-                boundaries.add(0.0);
-                boundaries.add(1.0);
-                boundaries.add(-1.0);
-                newValue = Randomness.choice(boundaries);
-                newDouble = (Double) newValue;
-                break;
-        }
-
-        // Cast back to original type
-        if (primitive.getValue() instanceof Integer) {
-            newValue = (int) newDouble;
-        } else {
-            newValue = newDouble;
-        }
-        
-        if (newValue.equals(currentValue)) return null;
-        primitive.setValue(newValue);
-        return String.format("Mutated RAW NUMERIC '%s' from '%s' to '%s' via %s", varName, currentValue, newValue, operatorName);
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private String mutateNumericString(PrimitiveStatement primitive) {
-        String currentValue = (String) primitive.getValue();
-        String varName = primitive.getReturnValue().getName();
-        double currentDouble;
-        try {
-             currentDouble = Double.parseDouble(currentValue);
-        } catch (NumberFormatException e) {
-            return null; // Should not happen due to isNumeric check
-        }
-
-        int mutationType = Randomness.nextInt(4);
-        double newDouble = currentDouble;
-        String operatorName;
-
-        switch (mutationType) {
-            case 0:
-                operatorName = "INCREMENT";
-                newDouble = currentDouble + 1.0;
-                break;
-            case 1:
-                operatorName = "DECREMENT";
-                newDouble = currentDouble - 1.0;
-                break;
-            case 2:
-                operatorName = "NEGATE";
-                newDouble = currentDouble * -1.0;
-                break;
-            default:
-                operatorName = "SET_TO_BOUNDARY";
-                List<Double> boundaries = new ArrayList<>();
-                boundaries.add(0.0);
-                boundaries.add(1.0);
-                boundaries.add(-1.0);
-                newDouble = Randomness.choice(boundaries);
-                break;
-        }
-
-        // Keep original format (int or double)
-        String newValue = currentValue.contains(".") ? String.valueOf(newDouble) : String.valueOf((int)newDouble);
-        
-        if (newValue.equals(currentValue)) return null;
-        primitive.setValue(newValue);
-        return String.format("Mutated NUMERIC_STRING '%s' from '%s' to '%s' via %s", varName, currentValue, newValue, operatorName);
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private String mutateAlphanumericString(PrimitiveStatement primitive) {
-        String currentValue = (String) primitive.getValue();
-        String varName = primitive.getReturnValue().getName();
-        int mutationType = Randomness.nextInt(3);
-        String newValue = currentValue;
-        String operatorName;
-
-        switch (mutationType) {
-            case 0:
-                operatorName = "SET_TO_EMPTY";
-                newValue = "";
-                break;
-            case 1:
-                operatorName = "CHAR_FLIP";
-                if (!currentValue.isEmpty()) {
-                    int pos = Randomness.nextInt(currentValue.length());
-                    char randomChar = (char) (Randomness.nextInt(95) + 32); // Printable ASCII
-                    StringBuilder sb = new StringBuilder(currentValue);
-                    sb.setCharAt(pos, randomChar);
-                    newValue = sb.toString();
-                }
-                break;
-            default:
-                operatorName = "INSERT_SPECIAL_CHAR";
-                String specialChars = "!@#$%^&*()_+-=[]{}|;:',.<>/?`~";
-                char special = specialChars.charAt(Randomness.nextInt(specialChars.length()));
-                int pos = currentValue.isEmpty() ? 0 : Randomness.nextInt(currentValue.length() + 1);
-                StringBuilder sb = new StringBuilder(currentValue);
-                sb.insert(pos, special);
-                newValue = sb.toString();
-                break;
-        }
-        if (newValue.equals(currentValue)) return null;
-        primitive.setValue(newValue);
-        return String.format("Mutated ALPHANUMERIC_STRING '%s' from '%s' to '%s' via %s", varName, currentValue, newValue, operatorName);
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private String mutateEnum(PrimitiveStatement primitive) {
-        String varName = primitive.getReturnValue().getName();
-        EnumPrimitiveStatement enumStmt = (EnumPrimitiveStatement) primitive;
-        List<Enum> constants = new ArrayList<>(enumStmt.getEnumValues());
-        if (constants.size() <= 1) return null;
-
-        Enum currentValue = (Enum) primitive.getValue();
-        constants.remove(currentValue);
-        
-        Enum newValue = Randomness.choice(constants);
-        primitive.setValue(newValue);
-        return String.format("Mutated ENUM '%s' from '%s' to '%s' via SWITCH_ENUM", varName, currentValue.name(), newValue.name());
     }
 }
