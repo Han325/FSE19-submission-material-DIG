@@ -47,7 +47,7 @@ public class NewTransactionComponent extends BasePageObject implements PageCompo
 		this.type(By.xpath("//input[contains(@class, \"transaction-name\")]"), transactionName);
 	}
 
-	public void typeAmount(int amount){
+	public void typeAmount(double amount){
 		this.type(By.xpath("//input[contains(@class, \"transaction-amount\")]"), String.valueOf(amount));
 	}
 

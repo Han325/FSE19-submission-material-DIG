@@ -2,20 +2,26 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum Telephones implements TestData {
+public class Telephones implements TestData {
 
-    PHONE1 ("6085551023"),
-    PHONE2 ("6085551749"),
-    PHONE3 ("6085558763"),
-    PHONE4 ("6085553198");
+    public final String value;
 
-    private final String telephone;
+    public static final String[] examples = {
+        "6085551023",
+        "6085551749",
+        "6085558763",
+        "6085553198"
+    };
 
-    Telephones(String telephone){
-        this.telephone = telephone;
+    private Telephones(String telephoneString) {
+        this.value = telephoneString;
     }
 
-    public String value(){
-        return this.telephone;
+    public static Telephones fromString(String s) {
+        return new Telephones(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

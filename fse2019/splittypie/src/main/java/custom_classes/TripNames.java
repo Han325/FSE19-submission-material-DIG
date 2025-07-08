@@ -2,20 +2,26 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum TripNames implements TestData {
+public class TripNames implements TestData {
 
-    BARCELONA ("Trip To Barcelona"),
-    ROME ("Trip to Rome"),
-    AMUSEMENT_PARK ("Mirabilandia"),
-    RESTAURANT ("Restaurant");
+    public final String value;
 
-    private final String tripName;
+    public static final String[] examples = {
+        "Trip To Barcelona",
+        "Trip to Rome",
+        "Mirabilandia",
+        "Restaurant"
+    };
 
-    TripNames(String tripName){
-        this.tripName = tripName;
+    private TripNames(String tripNameString) {
+        this.value = tripNameString;
     }
 
-    public String value(){
-        return this.tripName;
+    public static TripNames fromString(String s) {
+        return new TripNames(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

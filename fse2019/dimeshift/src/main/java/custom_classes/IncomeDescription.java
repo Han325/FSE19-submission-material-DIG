@@ -1,12 +1,9 @@
 package custom_classes;
 
 import po_utils.TestData;
-import java.util.Random;
 
 public class IncomeDescription implements TestData {
 
-    // public static final IncomeDescription SCHOLARSHIP = new IncomeDescription("scholarship");
-    // public static final IncomeDescription SALARY = new IncomeDescription("salary");
     public final String value;
 
     public static final String[] examples = {

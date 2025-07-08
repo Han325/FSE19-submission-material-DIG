@@ -2,20 +2,26 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum LongFirstNames implements TestData {
+public class LongFirstNames implements TestData {
 
-    GEORGE ("George"),
-    BETTY ("Betty"),
-    EDUARDO ("Eduardo"),
-    LONG ("HaroldHaroldHaroldHaroldHaroldHaroldHaroldHaroldHaroldHarold");
+    public final String value;
 
-    private final String firstName;
+    public static final String[] examples = {
+        "George",
+        "Betty",
+        "Eduardo",
+        "HaroldHaroldHaroldHaroldHaroldHaroldHaroldHaroldHaroldHarold"
+    };
 
-    LongFirstNames(String firstName){
-        this.firstName = firstName;
+    private LongFirstNames(String firstNameString) {
+        this.value = firstNameString;
     }
 
-    public String value(){
-        return this.firstName;
+    public static LongFirstNames fromString(String s) {
+        return new LongFirstNames(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

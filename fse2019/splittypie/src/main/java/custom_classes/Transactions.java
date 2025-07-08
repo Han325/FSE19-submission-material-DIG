@@ -2,22 +2,28 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum Transactions implements TestData {
+public class Transactions implements TestData {
 
-    SHOPPING ("Shopping"),
-    TICKETS ("Tickets"),
-    MUSEUM ("Museum"),
-    LUNCH ("Lunch"),
-    DINNER ("Dinner"),
-    DISCO ("Disco");
+    public final String value;
 
-    private final String transaction;
+    public static final String[] examples = {
+        "Shopping",
+        "Tickets",
+        "Museum",
+        "Lunch",
+        "Dinner",
+        "Disco"
+    };
 
-    Transactions(String transaction){
-        this.transaction = transaction;
+    private Transactions(String transactionString) {
+        this.value = transactionString;
     }
 
-    public String value(){
-        return this.transaction;
+    public static Transactions fromString(String s) {
+        return new Transactions(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

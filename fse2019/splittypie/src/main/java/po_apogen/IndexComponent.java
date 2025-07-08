@@ -7,7 +7,6 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import po_utils.BasePageObject;
 import po_utils.ConstantLocators;
-import po_utils.MyProperties;
 import po_utils.PageComponent;
 
 import java.util.List;

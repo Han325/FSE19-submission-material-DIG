@@ -7,13 +7,17 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException {
 
+        WalletNames COMPANY = WalletNames.fromString("Company");
+        WalletNames PERSONAL = WalletNames.fromString("Personal");
+
+
         ResetAppState.reset();
         ClassUnderTest classUnderTest0 = new ClassUnderTest();
         classUnderTest0.addWalletWalletsManagerPage();
-        classUnderTest0.addAddWalletPage(WalletNames.COMPANY);
+        classUnderTest0.addAddWalletPage(COMPANY);
         classUnderTest0 = new ClassUnderTest();
         ResetAppState.reset();
         classUnderTest0.addWalletWalletsManagerPage();
-        classUnderTest0.addAddWalletPage(WalletNames.PERSONAL);
+        classUnderTest0.addAddWalletPage(PERSONAL);
     }
 }

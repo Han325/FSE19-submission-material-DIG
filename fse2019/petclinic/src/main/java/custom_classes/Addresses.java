@@ -2,20 +2,26 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum Addresses implements TestData {
+public class Addresses implements TestData {
 
-    LIBERTY ("110 W. Liberty St."),
-    CARDINAL ("638 Cardinal Ave."),
-    COMMERCE ("2693 Commerce St."),
-    FRIENDLY ("563 Friendly St.");
+    public final String value;
 
-    private final String address;
+    public static final String[] examples = {
+        "110 W. Liberty St.",
+        "638 Cardinal Ave.",
+        "2693 Commerce St.",
+        "563 Friendly St."
+    };
 
-    Addresses(String address){
-        this.address = address;
+    private Addresses(String addressString) {
+        this.value = addressString;
     }
 
-    public String value(){
-        return this.address;
+    public static Addresses fromString(String s) {
+        return new Addresses(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

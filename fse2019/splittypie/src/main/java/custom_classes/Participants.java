@@ -2,22 +2,28 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum Participants implements TestData {
+public class Participants implements TestData {
 
-    MATTEO ("Matteo"),
-    MARCO ("Marco"),
-    JOHN ("John"),
-    MIKE ("Mike"),
-    MARK ("Mark"),
-    LUKE ("Luke");
+    public final String value;
 
-    private final String participant;
+    public static final String[] examples = {
+        "Matteo",
+        "Marco",
+        "John",
+        "Mike",
+        "Mark",
+        "Luke"
+    };
 
-    Participants(String participant){
-        this.participant = participant;
+    private Participants(String participantString) {
+        this.value = participantString;
     }
 
-    public String value(){
-        return this.participant;
+    public static Participants fromString(String s) {
+        return new Participants(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

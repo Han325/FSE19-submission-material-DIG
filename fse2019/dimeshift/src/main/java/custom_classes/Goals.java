@@ -1,17 +1,12 @@
 package custom_classes;
 
 import po_utils.TestData;
-import java.util.Random;
 
 public class Goals implements TestData {
 
-    // public static final Goals SKI = new Goals("ski");
-    // public static final Goals MUSEUM = new Goals("museum");
-    // public static final Goals HOUSE = new Goals("house");
-    // public static final Goals CAR = new Goals("car");
     public final String value;
 
-    private static final String[] placeholders = {
+    public static final String[] examples = {
         "ski",
         "museum",
         "house",

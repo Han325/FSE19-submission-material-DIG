@@ -773,7 +773,7 @@ public class ClassUnderTest {
 						.value());
 				page.addEditTransactionComponent
 						.typeTransactionName(transaction.value());
-				page.addEditTransactionComponent.typeAmount(price.value);
+				page.addEditTransactionComponent.typeAmount(price.value());
 				page.addEditTransactionComponent.pickDateFromCalendar(date);
 				page.addEditTransactionComponent
 						.excludeFromSharing(participantToExclude.value());

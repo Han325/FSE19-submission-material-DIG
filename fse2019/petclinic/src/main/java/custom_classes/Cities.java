@@ -2,20 +2,26 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum Cities implements TestData {
+public class Cities implements TestData {
 
-    MADISON ("Madison"),
-    MCFARLAND ("McFarland"),
-    WINDSOR ("Windsor"),
-    MONONA ("Monona");
+    public final String value;
 
-    private final String city;
+    public static final String[] examples = {
+        "Madison",
+        "McFarland",
+        "Windsor",
+        "Monona"
+    };
 
-    Cities(String city){
-        this.city = city;
+    private Cities(String cityString) {
+        this.value = cityString;
     }
 
-    public String value(){
-        return this.city;
+    public static Cities fromString(String s) {
+        return new Cities(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

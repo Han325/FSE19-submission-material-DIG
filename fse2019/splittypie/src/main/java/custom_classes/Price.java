@@ -1,16 +1,22 @@
 package custom_classes;
 
-import po_utils.Range;
 import po_utils.TestData;
 
-public class Price extends Range implements TestData {
+public class Price implements TestData {
 
-    private final int lower = 1;
-    private final int upper = 100;
-    public final int value;
+    public final double value;
 
-    public Price(int i){
-        this.value = this.map(i, lower, upper);
-        //this.value = i;
+    // The private constructor
+    private Price(double priceValue) {
+        this.value = priceValue;
     }
+
+    public static Price fromString(String s) {
+        return new Price(Double.parseDouble(s));
+    }
+
+    public double value() {
+        return this.value;
+    }
+
 }

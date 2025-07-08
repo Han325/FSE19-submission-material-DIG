@@ -2,19 +2,25 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum WalletNames implements TestData {
+public class WalletNames implements TestData {
 
-    PERSONAL ("Personal"),
-    COMPANY ("Company"),
-    PRIVATE ("Private");
+    public final String value;
 
-    private final String walletName;
+    public static final String[] examples = {
+        "Personal",
+        "Company",
+        "Private"
+    };
 
-    WalletNames(String walletName){
-        this.walletName = walletName;
+    private WalletNames(String walletNameString) {
+        this.value = walletNameString;
     }
 
-    public String value(){
-        return this.walletName;
+    public static WalletNames fromString(String s) {
+        return new WalletNames(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

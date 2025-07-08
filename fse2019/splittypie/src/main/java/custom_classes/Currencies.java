@@ -2,27 +2,32 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum Currencies implements TestData {
+public class Currencies implements TestData {
 
-    USD ("United States dollar (USD)"),
-    EUR ("Euro (EUR)"),
-    GBP ("Pound sterling (GBP)"),
-    PLN ("Polish złoty (PLN)"),
-    CHF ("Swiss franc (CHF)"),
-    CZK ("Czech koruna (CZK)"),
-    HRK ("Croatian kuna (HRK)"),
-    RON ("Romanian leu (RON)"),
-    BGN ("Bulgarian lev (BGN)"),
-    RUB ("Russian ruble (RUB)");
+    public final String value;
 
+    public static final String[] examples = {
+        "United States dollar (USD)",
+        "Euro (EUR)",
+        "Pound sterling (GBP)",
+        "Polish złoty (PLN)",
+        "Swiss franc (CHF)",
+        "Czech koruna (CZK)",
+        "Croatian kuna (HRK)",
+        "Romanian leu (RON)",
+        "Bulgarian lev (BGN)",
+        "Russian ruble (RUB)"
+    };
 
-    private final String currency;
-
-    Currencies(String currency){
-        this.currency = currency;
+    private Currencies(String currencyString) {
+        this.value = currencyString;
     }
 
-    public String value(){
-        return this.currency;
+    public static Currencies fromString(String s) {
+        return new Currencies(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

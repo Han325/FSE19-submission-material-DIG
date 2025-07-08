@@ -2,20 +2,26 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum LongPetNames implements TestData {
+public class LongPetNames implements TestData {
 
-    LEO ("Leo"),
-    BASIL ("Basil"),
-    ROSY ("Rosy"),
-    JEWEL ("JewelJewelJewelJewelJewelJewelJewelJewelJewelJewelJewel");
+    public final String value;
 
-    private final String petName;
+    public static final String[] examples = {
+        "Leo",
+        "Basil",
+        "Rosy",
+        "JewelJewelJewelJewelJewelJewelJewelJewelJewelJewelJewel"
+    };
 
-    LongPetNames(String petName){
-        this.petName = petName;
+    private LongPetNames(String petNameString) {
+        this.value = petNameString;
     }
 
-    public String value(){
-        return this.petName;
+    public static LongPetNames fromString(String s) {
+        return new LongPetNames(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

@@ -2,22 +2,28 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum PetTypes implements TestData {
+public class PetTypes implements TestData {
 
-    BIRD ("bird"),
-    CAT ("cat"),
-    DOG ("dog"),
-    HAMSTER ("hamster"),
-    LIZARD ("lizard"),
-    SNAKE ("snake");
+    public final String value;
 
-    private final String petType;
+    public static final String[] examples = {
+        "bird",
+        "cat",
+        "dog",
+        "hamster",
+        "lizard",
+        "snake"
+    };
 
-    PetTypes(String petType){
-        this.petType = petType;
+    private PetTypes(String petTypeString) {
+        this.value = petTypeString;
     }
 
-    public String value(){
-        return this.petType;
+    public static PetTypes fromString(String s) {
+        return new PetTypes(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

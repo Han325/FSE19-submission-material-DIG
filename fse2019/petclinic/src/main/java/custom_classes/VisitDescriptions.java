@@ -2,20 +2,26 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum VisitDescriptions implements TestData {
+public class VisitDescriptions implements TestData {
 
-    ONE ("I don't know"),
-    TWO ("Should be ok soon"),
-    THREE ("He is not fine isn't he"),
-    FOUR ("I should check");
+    public final String value;
 
-    private final String visitDescription;
+    public static final String[] examples = {
+        "I don't know",
+        "Should be ok soon",
+        "He is not fine isn't he",
+        "I should check"
+    };
 
-    VisitDescriptions(String visitDescription){
-        this.visitDescription = visitDescription;
+    private VisitDescriptions(String visitDescriptionString) {
+        this.value = visitDescriptionString;
     }
 
-    public String value(){
-        return this.visitDescription;
+    public static VisitDescriptions fromString(String s) {
+        return new VisitDescriptions(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

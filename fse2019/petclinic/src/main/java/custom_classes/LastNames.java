@@ -2,20 +2,26 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum LastNames implements TestData {
+public class LastNames implements TestData {
 
-    FRANKLIN ("Franklin"),
-    DAVIS ("Davis"),
-    RODRIQUEZ ("Rodriquez"),
-    BLACK ("Black");
+    public final String value;
 
-    private final String lastName;
+    public static final String[] examples = {
+        "Franklin",
+        "Davis",
+        "Rodriquez",
+        "Black"
+    };
 
-    LastNames(String lastName){
-        this.lastName = lastName;
+    private LastNames(String lastNameString) {
+        this.value = lastNameString;
     }
 
-    public String value(){
-        return this.lastName;
+    public static LastNames fromString(String s) {
+        return new LastNames(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }

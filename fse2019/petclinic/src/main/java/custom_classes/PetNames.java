@@ -2,20 +2,26 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum PetNames implements TestData {
+public class PetNames implements TestData {
 
-    LEO ("Leo"),
-    BASIL ("Basil"),
-    ROSY ("Rosy"),
-    JEWEL ("Jewel");
+    public final String value;
 
-    private final String petName;
+    public static final String[] examples = {
+        "Leo",
+        "Basil",
+        "Rosy",
+        "Jewel"
+    };
 
-    PetNames(String petName){
-        this.petName = petName;
+    private PetNames(String petNameString) {
+        this.value = petNameString;
     }
 
-    public String value(){
-        return this.petName;
+    public static PetNames fromString(String s) {
+        return new PetNames(s);
+    }
+
+    public String value() {
+        return this.value;
     }
 }
