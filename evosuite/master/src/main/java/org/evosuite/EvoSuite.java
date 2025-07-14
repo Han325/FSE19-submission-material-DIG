@@ -297,7 +297,7 @@ public class EvoSuite {
     public static void main(String[] args) {
 
         // START: Add this debugging code
-        System.out.println("NEW TINGS COMING IN CHANGING STUFF");
+        System.out.println("REFINING PROMPTS FAM");
         // END: Add this debugging code
 
         try 
