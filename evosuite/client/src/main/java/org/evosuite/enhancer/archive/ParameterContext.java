@@ -1,4 +1,4 @@
-package org.evosuite.enhancer;
+package org.evosuite.enhancer.archive;
 
 import org.evosuite.testcase.statements.MethodStatement;
 import java.util.List;

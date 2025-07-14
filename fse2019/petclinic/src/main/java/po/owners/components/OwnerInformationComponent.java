@@ -40,8 +40,8 @@ public class OwnerInformationComponent extends BasePageObject implements PageCom
     }
 
     public void clickOnEditOwner(){
-//		this.clickOn(By.xpath("//tbody/tr/td/a[text()=\"Edit Owner\"]"));
-        this.bruteForceClick(By.xpath("//tbody/tr/td/a[text()=\"Edit Owner\"]"),
+//		this.clickOn(By.xpath("//a[normalize-space()='Edit Owner']"));
+        this.bruteForceClick(By.xpath("//a[normalize-space()='Edit Owner']"),
                 By.xpath("//owner-details/h2[text()=\"Owner Information\"]"), 20 , "clickOnEditOwner: failed to click button");
     }
 

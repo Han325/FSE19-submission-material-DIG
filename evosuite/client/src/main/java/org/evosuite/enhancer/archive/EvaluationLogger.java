@@ -1,6 +1,6 @@
 // IN FILE: EvaluationLogger.java
 
-package org.evosuite.enhancer;
+package org.evosuite.enhancer.archive;
 
 import java.io.FileWriter;
 import java.io.IOException;

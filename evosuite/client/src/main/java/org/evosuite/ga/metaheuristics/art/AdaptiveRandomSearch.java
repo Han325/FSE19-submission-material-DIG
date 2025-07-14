@@ -198,8 +198,10 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 
 			// --- ENHANCEMENT CALL ---
 			// This is where our new module is called. It enhances the candidate in-place.
-			logger.info("Enhancing candidate " + (i + 1) + "/" + k);
-			this.llmEnhancer.enhanceCandidate((TestChromosome) candidate);
+			if(false){
+				logger.info("Enhancing candidate " + (i + 1) + "/" + k);
+				this.llmEnhancer.enhanceCandidate((TestChromosome) candidate);
+			}
 			// --- END OF ENHANCEMENT CALL ---
 
 			candidates.add(candidate);
@@ -207,7 +209,7 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 
 		// THIS IS WHERE YOUR GI SHIT COMES IN
 		int variationsPerSeed = 5; // This should be a Property later
-        if(true){
+        if(false){
             logger.info("Handing off " + candidates.size() + " seeds to the Genetic Improver.");
             // The GI module takes the k seeds and returns a k * m supercharged population
             candidates = (List<T>) this.geneticImprover.diversifyPopulation((List<TestChromosome>) candidates, variationsPerSeed);

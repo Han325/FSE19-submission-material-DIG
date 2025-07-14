@@ -8,6 +8,8 @@ OLLAMA_HOST=0.0.0.0 ollama serve
 ssh -i ~/.ssh/id_utm_vm -p 2222 vagrant@localhost
 ```
 
+ssh -p 2224 vagrant-old@localhost
+
 ```
 scp -r -P 2222 ~/.m2/repository/org/evosuite/ vagrant@localhost:/home/vagrant/.m2/repository/org/
 ```
