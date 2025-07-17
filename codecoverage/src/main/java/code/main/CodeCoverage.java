@@ -58,6 +58,7 @@ public class CodeCoverage {
         System.out.println("[CodeCoverage]: modifying evosuite test suite " + this.pathToTestSuiteInProject + "...");
         TestExecution testExecution = new TestExecution();
         testExecution.modifyTestSuite(this.pathToTestSuiteInProject);
+        System.out.println("THIS SHIT WITH MODIFICATION FAM");
         System.out.println("[CodeCoverage]: evosuite test suite " + pathToTestSuiteInProject + " modified successfully!");
     }
 

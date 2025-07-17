@@ -11,6 +11,11 @@ import org.openqa.selenium.remote.Response;
 import org.openqa.selenium.remote.http.W3CHttpCommandCodec;
 import org.openqa.selenium.remote.http.W3CHttpResponseCodec;
 
+// Logging imports
+import org.openqa.selenium.logging.LogType;
+import org.openqa.selenium.logging.LoggingPreferences;
+import java.util.logging.Level;
+
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
@@ -21,16 +26,22 @@ public class DriverProvider {
 
     private static String sessionId = "";
 
-    public WebDriver getActiveDriver(){
+    public WebDriver getActiveDriver() {
         WebDriver driver = null;
         try {
             String chromedriverURL = new URL("http://localhost:"
                     + Integer.valueOf(MyProperties.getInstance().getProperty("chromedriverPort"))).toString();
             String appUrl = "http://localhost:" + Integer.valueOf(MyProperties.getInstance().getProperty("appPort"));
             boolean driverHeadless = Boolean.valueOf(MyProperties.getInstance().getProperty("driverHeadless"));
-            if(sessionId.isEmpty()){
+            if (sessionId.isEmpty()) {
                 DesiredCapabilities capabilities = DesiredCapabilities.chrome();
-                if(driverHeadless) {
+
+                LoggingPreferences logPrefs = new LoggingPreferences();
+                logPrefs.enable(LogType.BROWSER, Level.ALL); // Capture all browser console logs
+
+                capabilities.setCapability("loggingPrefs", logPrefs);
+                
+                if (driverHeadless) {
                     ChromeOptions chromeOptions = new ChromeOptions();
                     chromeOptions.addArguments("--headless", "--disable-gpu", "--window-size=1200x600");
                     capabilities.setCapability(ChromeOptions.CAPABILITY, chromeOptions);
@@ -47,7 +58,8 @@ public class DriverProvider {
         return driver;
     }
 
-    private RemoteWebDriver createDriverFromSession(String sessionId, String command_executor) throws MalformedURLException {
+    private RemoteWebDriver createDriverFromSession(String sessionId, String command_executor)
+            throws MalformedURLException {
         CommandExecutor executor = new HttpCommandExecutor(new URL(command_executor)) {
 
             @Override
@@ -82,6 +94,5 @@ public class DriverProvider {
 
         return new RemoteWebDriver(executor, new DesiredCapabilities());
     }
-
 
 }

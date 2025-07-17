@@ -84,7 +84,7 @@ done
 
 echo "Project name: " $PROJECT_NAME
 echo "Application port for remote connection: " $APP_PORT
-echo "Chromedriver port: " $CHROMEDRIVER_PORT
+# echo "Chromedriver port: " $CHROMEDRIVER_PORT
 
 DRIVER_HEADLESS=false
 EVOSUITE_PROPERTIES_FILE=$PWD/evosuite-files/evosuite.properties
@@ -114,7 +114,7 @@ fi
 
 PROPERTIES_FILE=$PWD/src/main/resources/app.properties
 cat >$PROPERTIES_FILE <<EOL
-chromedriverPort=${CHROMEDRIVER_PORT}
+# chromedriverPort=${CHROMEDRIVER_PORT}
 appPort=${APP_PORT}
 driverHeadless=${DRIVER_HEADLESS}
 EOL
@@ -145,11 +145,11 @@ else
 	exit
 fi
 
-checkIfProcessIsNotListeningOnPort $CHROMEDRIVER_PORT
+# checkIfProcessIsNotListeningOnPort $CHROMEDRIVER_PORT
 
-# Start chromedriver: chromedriver bin must be in the path
-echo "Starting chromedriver on port "$CHROMEDRIVER_PORT
-chromedriver --port=$CHROMEDRIVER_PORT &
+# # Start chromedriver: chromedriver bin must be in the path
+# echo "Starting chromedriver on port "$CHROMEDRIVER_PORT
+# chromedriver --port=$CHROMEDRIVER_PORT &
 
 # echo "Starting docker container using script " run-docker.sh
 # ./run-docker.sh -a $APP_PORT -p yes -n $PROJECT_NAME
@@ -231,21 +231,21 @@ mv $HOME/Desktop/logs$SUFFIX.txt $HOME/Desktop/test$SUFFIX/logs$SUFFIX.txt
 mv $HOME/Desktop/errors$SUFFIX.txt $HOME/Desktop/test$SUFFIX/errors$SUFFIX.txt
 sleep 2
 
-echo "Stopping chromedriver process listening on port "$CHROMEDRIVER_PORT
+# echo "Stopping chromedriver process listening on port "$CHROMEDRIVER_PORT
 
-PID_CHROMEDRIVER_TO_KILL=$(lsof -Pan -i | grep "chromedri" | grep "127.0.0.1:"$CHROMEDRIVER_PORT | awk '{print $2}')
-if [ -z "$PID_CHROMEDRIVER_TO_KILL" ]; then
-  echo Error in killing chromedriver process. PID of chromedriver is empty: $PID_CHROMEDRIVER_TO_KILL
-  echo "Removing session file if exists"
-  if [[ -e $HOME/Desktop/$PROJECT_NAME.ser ]]; then
-      rm $HOME/Desktop/$PROJECT_NAME.ser
-  fi
-  exit 1
-fi
+# PID_CHROMEDRIVER_TO_KILL=$(lsof -Pan -i | grep "chromedri" | grep "127.0.0.1:"$CHROMEDRIVER_PORT | awk '{print $2}')
+# if [ -z "$PID_CHROMEDRIVER_TO_KILL" ]; then
+#   echo Error in killing chromedriver process. PID of chromedriver is empty: $PID_CHROMEDRIVER_TO_KILL
+#   echo "Removing session file if exists"
+#   if [[ -e $HOME/Desktop/$PROJECT_NAME.ser ]]; then
+#       rm $HOME/Desktop/$PROJECT_NAME.ser
+#   fi
+#   exit 1
+# fi
 
-echo "Finding children processes of chromedriver and killing them"
-pgrep -P $PID_CHROMEDRIVER_TO_KILL | xargs kill -9
-kill -9 $PID_CHROMEDRIVER_TO_KILL
+# echo "Finding children processes of chromedriver and killing them"
+# pgrep -P $PID_CHROMEDRIVER_TO_KILL | xargs kill -9
+# kill -9 $PID_CHROMEDRIVER_TO_KILL
 
 echo "Removing session file if exists"
 if [[ -e $HOME/Desktop/$PROJECT_NAME.ser ]]; then

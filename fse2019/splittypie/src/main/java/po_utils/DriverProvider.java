@@ -5,20 +5,34 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
+import org.openqa.selenium.logging.LogType;
+import org.openqa.selenium.logging.LoggingPreferences;
+import java.util.logging.Level;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 
 public class DriverProvider {
 
-    public WebDriver getActiveDriver(){
+    public WebDriver getActiveDriver() {
         WebDriver driver = null;
         try {
-            String chromedriverURL = new URL("http://localhost:"
-                    + Integer.valueOf(MyProperties.getInstance().getProperty("chromedriverPort"))).toString();
-            String appUrl = "http://localhost:" + Integer.valueOf(MyProperties.getInstance().getProperty("appPort"));
+            // String chromedriverURL = new URL("http://localhost:"
+            // +
+            // Integer.valueOf(MyProperties.getInstance().getProperty("chromedriverPort"))).toString();
+            // String appUrl = "http://localhost:" +
+            // Integer.valueOf(MyProperties.getInstance().getProperty("appPort"));
+            String chromedriverURL = "http://localhost:4444/wd/hub";
+            String appUrl = "http://webapp:4200";
             boolean driverHeadless = Boolean.valueOf(MyProperties.getInstance().getProperty("driverHeadless"));
             DesiredCapabilities capabilities = DesiredCapabilities.chrome();
-            if(driverHeadless) {
+
+            System.out.println("LOGGING ENABLED");
+            LoggingPreferences logPrefs = new LoggingPreferences();
+            logPrefs.enable(LogType.BROWSER, Level.ALL); // Capture all browser console logs
+            capabilities.setCapability("loggingPrefs", logPrefs);
+
+            if (driverHeadless) {
                 ChromeOptions chromeOptions = new ChromeOptions();
                 chromeOptions.addArguments("--headless", "--disable-gpu", "--window-size=1200x600");
                 capabilities.setCapability(ChromeOptions.CAPABILITY, chromeOptions);

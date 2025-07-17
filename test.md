@@ -1,0 +1,21 @@
+./run.sh splittypie \
+         "/home/vagrant-code-coverage/workspace/test-generation-results/resultsSplittypie/mosa" \
+         "/home/vagrant-code-coverage/workspace/fse2019/splittypie" \
+         splittypie \
+         3000 \
+         0 \
+         4444 \
+         "/home/vagrant-code-coverage/workspace/code-coverage-server/express-istanbul" \
+         7014
+
+ssh -p 2225 vagrant-code-coverage@localhost
+
+scp -r -P 2225 ~/Documents/Code/code-coverage/workspace/fse2019/splittypie/ vagrant-code-coverage@localhost:/home/vagrant-code-coverage/workspace/fse2019/
+
+scp -r -P 2225 ~/Documents/Code/code-coverage/workspace/codecoverage/ vagrant-code-coverage@localhost:/home/vagrant-code-coverage/workspace/
+
+scp -r -P 2225 'vagrant-code-coverage@localhost:/home/vagrant/Desktop/*' ~/Downloads/gi-wip
+
+scp -r -P 2225 'vagrant-code-coverage@localhost:/home/vagrant-code-coverage/workspace/test-generation-results/resultsSplittypie/mosa/testsplittypieMosa_0' ~Downloads/modified-code-coverage
+
+ 
