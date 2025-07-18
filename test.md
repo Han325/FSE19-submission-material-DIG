@@ -14,8 +14,13 @@ scp -r -P 2225 ~/Documents/Code/code-coverage/workspace/fse2019/splittypie/ vagr
 
 scp -r -P 2225 ~/Documents/Code/code-coverage/workspace/codecoverage/ vagrant-code-coverage@localhost:/home/vagrant-code-coverage/workspace/
 
-scp -r -P 2225 'vagrant-code-coverage@localhost:/home/vagrant/Desktop/*' ~/Downloads/gi-wip
+scp -r -P 2225 'vagrant-code-coverage@localhost:/home/vagrant-code-coverage/Desktop/*' ~/Downloads/testing-faults
 
 scp -r -P 2225 'vagrant-code-coverage@localhost:/home/vagrant-code-coverage/workspace/test-generation-results/resultsSplittypie/mosa/testsplittypieMosa_0' ~Downloads/modified-code-coverage
+
+scp -r -P 2225 ~/Documents/Code/code-coverage/workspace/plot_discovery_curve.py vagrant-code-coverage@localhost:/home/vagrant-code-coverage/Desktop/
+
+scp -r -P 2225 ~/Documents/Code/code-coverage/workspace/codecoverage/calculate-auc.sh vagrant-code-coverage@localhost:/home/vagrant-code-coverage/workspace/codecoverage
+
 
  

@@ -61,6 +61,7 @@ public class TestExecution {
         if (withDB) {
             javaClass.addImport("org.junit.BeforeClass");
         } else {
+            javaClass.addImport("org.junit.BeforeClass");
             javaClass.addImport("org.junit.Before");
         }
         javaClass.addImport("org.junit.AfterClass");
@@ -115,9 +116,11 @@ public class TestExecution {
         if (withDB) {
             // one driver for all test cases in the test suite
             javaClass.addMethod(
-                    "@BeforeClass \n public static void setup() \n{ driver = new DriverProvider().getActiveDriver(); \n }");
+                    "@BeforeClass \n public static void setup() \n{ LogExporter.initialize(); \n driver = new DriverProvider().getActiveDriver(); \n }");
         } else {
             // one driver for each test case in the test suite
+            javaClass.addMethod(
+                "@BeforeClass \n public static void initializeLogging() { LogExporter.initialize(); }");
             javaClass.addMethod(
                     "@Before \n public void setup() \n{ driver = new DriverProvider().getActiveDriver(); \n }");
         }
@@ -138,7 +141,7 @@ public class TestExecution {
         if (withDB) {
             // don't reset the driver after each test case execution
             javaClass.addMethod("@After \n public void saveIntermediateCoverageReportAndReset() \n" +
-                    "{ LogExporter.collectLogs(driver, masterLogList); \n" +
+                    "{ LogExporter.processLogsAfterTest(driver, masterLogList); \n" + 
                     "CoverageManager coverageManager = new CoverageManager(); \n"
                     + "Object coverage = coverageManager.getCoverageObject(driver); \n"
                     + "coverageManager.sendCoverageObjectToExpressServer(coverage); \n"
@@ -148,7 +151,7 @@ public class TestExecution {
         } else {
             // reset the driver after each test case execution
             javaClass.addMethod("@After \n public void saveIntermediateCoverageReportAndReset() \n" +
-                    "{ LogExporter.collectLogs(driver, masterLogList); \n" +
+                    "{ LogExporter.processLogsAfterTest(driver, masterLogList); \n" + 
                     "CoverageManager coverageManager = new CoverageManager(); \n"
                     + "Object coverage = coverageManager.getCoverageObject(driver); \n"
                     + "coverageManager.sendCoverageObjectToExpressServer(coverage); \n"
