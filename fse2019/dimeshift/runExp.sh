@@ -1,27 +1,28 @@
 #!/bin/bash
 stopContainers(){
-	echo "Stopping containers"
-	local alg=$1
-	if [[ $alg == "SUBWEB" ]]; then
-	    docker stop dimeshiftMosa
-	    docker rm dimeshiftMosa
-    elif [[ $alg == "DIGS" ]]; then
-        docker stop dimeshiftAdaptiveSequence
-	    docker rm dimeshiftAdaptiveSequence
-    elif [[ $alg == "DIGSI" ]]; then
-        docker stop dimeshiftAdaptiveComplete
-	    docker rm dimeshiftAdaptiveComplete
-    elif [[ $alg == "ALL" ]]; then
-        docker stop dimeshiftMosa
-	    docker rm dimeshiftMosa
-        docker stop dimeshiftAdaptiveSequence
-	    docker rm dimeshiftAdaptiveSequence
-	    docker stop dimeshiftAdaptiveComplete
-	    docker rm dimeshiftAdaptiveComplete
-    else
-        echo "Unknown alg: $alg"
-        exit 1
-	fi
+	# echo "Stopping containers"
+	# local alg=$1
+	# if [[ $alg == "SUBWEB" ]]; then
+	#     docker stop dimeshiftMosa
+	#     docker rm dimeshiftMosa
+    # elif [[ $alg == "DIGS" ]]; then
+    #     docker stop dimeshiftAdaptiveSequence
+	#     docker rm dimeshiftAdaptiveSequence
+    # elif [[ $alg == "DIGSI" ]]; then
+    #     docker stop dimeshiftAdaptiveComplete
+	#     docker rm dimeshiftAdaptiveComplete
+    # elif [[ $alg == "ALL" ]]; then
+    #     docker stop dimeshiftMosa
+	#     docker rm dimeshiftMosa
+    #     docker stop dimeshiftAdaptiveSequence
+	#     docker rm dimeshiftAdaptiveSequence
+	#     docker stop dimeshiftAdaptiveComplete
+	#     docker rm dimeshiftAdaptiveComplete
+    # else
+    #     echo "Unknown alg: $alg"
+    #     exit 1
+	# fi
+    docker compose down
 }
 
 if test $# -lt 4 ; then echo 'ARGS: ITERATIONS [num], ALG [SUBWEB|DIGS|DIGSI|ALL], PO [MANUAL|APOGEN], BUDGET [num (seconds)]' ; exit 1 ; fi

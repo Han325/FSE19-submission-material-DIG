@@ -52,8 +52,9 @@ if [[ $PRODUCTION == "yes"  ]]; then
 		exit 1
 	fi
 	if [[ $CODE_COVERAGE_INSTRUMENTATION == "yes" ]]; then
-	    docker run -it --workdir=/home/retro-board --name=$CONTAINER_NAME --expose 8080 -p $PORT_APP:8080 \
-	    -d --entrypoint ./run-code-instrumentation.sh dockercontainervm/retroboard:latest bash
+	    # docker run -it --workdir=/home/retro-board --name=$CONTAINER_NAME --expose 8080 -p $PORT_APP:8080 \
+	    # -d --entrypoint ./run-code-instrumentation.sh dockercontainervm/retroboard:latest bash
+		docker compose up -d
     else
         docker run -it --workdir=/home/retro-board --name=$CONTAINER_NAME --expose 8080 -p $PORT_APP:8080 \
 	    -d --entrypoint ./run-services-docker.sh dockercontainervm/retroboard:latest bash

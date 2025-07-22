@@ -33,6 +33,20 @@ public class CoverageManager {
     }
 
     public Object getCoverageObject(WebDriver driver){
+
+        System.out.println("--- [DEBUG] Inside getCoverageObject. Attempting to get page source. ---");
+        try {
+            String pageSource = driver.getPageSource();
+            String currentUrl = driver.getCurrentUrl();
+            System.out.println("--- [DEBUG] START OF PAGE SOURCE ---");
+            System.out.println(pageSource);
+            System.out.println("--- [DEBUG] END OF PAGE SOURCE ---");
+            System.out.println("--- [DEBUG] Current URL: " + currentUrl + " ---");
+        } catch (Exception e) {
+            System.out.println("--- [DEBUG] FAILED TO GET PAGE SOURCE ---");
+            e.printStackTrace(System.out);
+        }
+
         JavascriptExecutor javascriptExecutor = (JavascriptExecutor) driver;
         Object coverage = javascriptExecutor.executeScript("return window.__coverage__;");
         if(coverage == null){

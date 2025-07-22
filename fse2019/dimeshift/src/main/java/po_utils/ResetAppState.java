@@ -18,7 +18,7 @@ public class ResetAppState {
         List<String> tables = Arrays.asList("wallets","wallet_accesses","users","transactions","plans","plan_wallets","authentications");
         resetDB("root","root","walletjs", tables);
         clearCookies(driver);
-        driver.get("http://localhost:" + Integer.valueOf(MyProperties.getInstance().getProperty("appPort")));
+        driver.get("http://webapp:8080");
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -41,6 +41,7 @@ public class ResetAppState {
 
     private static void resetDB(String username, String password, String dbName, List<String> tables){
         int port = Integer.valueOf(MyProperties.getInstance().getProperty("dbPort"));
+        port = 3306;
         MySqlConnection mySqlConnection = new MySqlConnection();
         Optional<Connection> optionalConneciton = mySqlConnection.establishDBConnection("root","root",port,"walletjs");
         if(optionalConneciton.isPresent()){

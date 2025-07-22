@@ -1,27 +1,29 @@
 #!/bin/bash
 stopContainers(){
-	echo "Stopping containers"
-	local alg=$1
-	if [[ $alg == "SUBWEB" ]]; then
-	    docker stop retroboardMosa
-	    docker rm retroboardMosa
-    elif [[ $alg == "DIGS" ]]; then
-        docker stop retroboardAdaptiveSequence
-	    docker rm retroboardAdaptiveSequence
-    elif [[ $alg == "DIGSI" ]]; then
-        docker stop retroboardAdaptiveComplete
-	    docker rm retroboardAdaptiveComplete
-    elif [[ $alg == "ALL" ]]; then
-        docker stop retroboardMosa
-	    docker rm retroboardMosa
-        docker stop retroboardAdaptiveSequence
-	    docker rm retroboardAdaptiveSequence
-	    docker stop retroboardAdaptiveComplete
-	    docker rm retroboardAdaptiveComplete
-    else
-        echo "Unknown alg: $alg"
-        exit 1
-	fi
+	# echo "Stopping containers"
+	# local alg=$1
+	# if [[ $alg == "SUBWEB" ]]; then
+	#     docker stop retroboardMosa
+	#     docker rm retroboardMosa
+    # elif [[ $alg == "DIGS" ]]; then
+    #     docker stop retroboardAdaptiveSequence
+	#     docker rm retroboardAdaptiveSequence
+    # elif [[ $alg == "DIGSI" ]]; then
+    #     docker stop retroboardAdaptiveComplete
+	#     docker rm retroboardAdaptiveComplete
+    # elif [[ $alg == "ALL" ]]; then
+    #     docker stop retroboardMosa
+	#     docker rm retroboardMosa
+    #     docker stop retroboardAdaptiveSequence
+	#     docker rm retroboardAdaptiveSequence
+	#     docker stop retroboardAdaptiveComplete
+	#     docker rm retroboardAdaptiveComplete
+    # else
+    #     echo "Unknown alg: $alg"
+    #     exit 1
+	# fi
+
+    docker compose down
 }
 
 if test $# -lt 4 ; then echo 'ARGS: ITERATIONS [num], ALG [SUBWEB|DIGS|DIGSI|ALL], PO [MANUAL|APOGEN], BUDGET [num (seconds)]' ; exit 1 ; fi

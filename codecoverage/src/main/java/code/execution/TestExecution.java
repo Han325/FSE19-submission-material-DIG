@@ -60,6 +60,7 @@ public class TestExecution {
         javaClass.addImport("code.execution.CodeCoverageRunner");
         if (withDB) {
             javaClass.addImport("org.junit.BeforeClass");
+            javaClass.addImport("org.junit.Before");
         } else {
             javaClass.addImport("org.junit.BeforeClass");
             javaClass.addImport("org.junit.Before");
@@ -116,7 +117,9 @@ public class TestExecution {
         if (withDB) {
             // one driver for all test cases in the test suite
             javaClass.addMethod(
-                    "@BeforeClass \n public static void setup() \n{ LogExporter.initialize(); \n driver = new DriverProvider().getActiveDriver(); \n }");
+                    "@BeforeClass \n public static void initializeLogging() \n{ LogExporter.initialize(); \n driver = new DriverProvider().getActiveDriver(); \n }");
+            javaClass.addMethod(
+                    "@Before \n public void setup() \n{ driver = new DriverProvider().getActiveDriver(); \n }");
         } else {
             // one driver for each test case in the test suite
             javaClass.addMethod(

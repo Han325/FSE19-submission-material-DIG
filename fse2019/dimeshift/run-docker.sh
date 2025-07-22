@@ -57,9 +57,10 @@ if [[ $PRODUCTION == "yes"  ]]; then
 		exit 1
 	fi
 	if [[ $CODE_COVERAGE_INSTRUMENTATION == "yes" ]]; then
-	    docker run -it --workdir=/home/dimeshift-application --name=$CONTAINER_NAME --expose 8080 --expose 3306 \
-	        -p $PORT_APP:8080 -p $PORT_DB:3306 -d --entrypoint \
-	        ./run-code-instrumentation.sh dockercontainervm/dimeshift:latest bash
+	    # docker run -it --workdir=/home/dimeshift-application --name=$CONTAINER_NAME --expose 8080 --expose 3306 \
+	    #     -p $PORT_APP:8080 -p $PORT_DB:3306 -d --entrypoint \
+	    #     ./run-code-instrumentation.sh dockercontainervm/dimeshift:latest bash
+		docker compose up -d
     else
         docker run -it --workdir=/home/dimeshift-application --name=$CONTAINER_NAME --expose 8080 --expose 3306 \
             -p $PORT_APP:8080 -p $PORT_DB:3306 -d --entrypoint \

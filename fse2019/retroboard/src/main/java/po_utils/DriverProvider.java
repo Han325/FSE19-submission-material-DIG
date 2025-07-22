@@ -13,9 +13,11 @@ public class DriverProvider {
     public WebDriver getActiveDriver(){
         WebDriver driver = null;
         try {
-            String chromedriverURL = new URL("http://localhost:"
-                    + Integer.valueOf(MyProperties.getInstance().getProperty("chromedriverPort"))).toString();
-            String appUrl = "http://localhost:" + Integer.valueOf(MyProperties.getInstance().getProperty("appPort"));
+            // String chromedriverURL = new URL("http://localhost:"
+            //         + Integer.valueOf(MyProperties.getInstance().getProperty("chromedriverPort"))).toString();
+            // String appUrl = "http://localhost:" + Integer.valueOf(MyProperties.getInstance().getProperty("appPort"));
+            String chromedriverURL = "http://localhost:4444/wd/hub";
+            String appUrl = "http://webapp:8080"; 
             boolean driverHeadless = Boolean.valueOf(MyProperties.getInstance().getProperty("driverHeadless"));
             DesiredCapabilities capabilities = DesiredCapabilities.chrome();
             if(driverHeadless) {
