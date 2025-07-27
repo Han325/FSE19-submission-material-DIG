@@ -4,18 +4,18 @@ import po_utils.TestData;
 
 public class Price implements TestData {
 
-    public final double value;
+    public final String value;
 
     // The private constructor
-    private Price(double priceValue) {
+    private Price(String priceValue) {
         this.value = priceValue;
     }
 
     public static Price fromString(String s) {
-        return new Price(Double.parseDouble(s));
+        return new Price(s);
     }
 
-    public double value() {
+    public String value() {
         return this.value;
     }
 

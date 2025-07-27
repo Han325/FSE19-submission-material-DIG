@@ -47,8 +47,10 @@ if [[ $PRODUCTION == "yes"  ]]; then
 		echo "Assigns a name to the running container for production usage!!"
 		exit 1
 	fi	
-	docker run -it --workdir=/home/retro-board --name=$CONTAINER_NAME --expose 8080 -p $PORT_APP:8080 -d --entrypoint ./run-services-docker.sh dockercontainervm/retroboard:latest bash
+	# docker run -it --workdir=/home/retro-board --name=$CONTAINER_NAME --expose 8080 -p $PORT_APP:8080 -d --entrypoint ./run-services-docker.sh dockercontainervm/retroboard:latest bash
+
 	#docker exec --workdir=/home/retro-board -d $CONTAINER_NAME /bin/bash ./run-services-docker.sh
+	docker compose up -d 
 else
 	if [[ $CONTAINER_NAME != "default" ]]; then
 		docker run -it --workdir=/home/retro-board --name=$CONTAINER_NAME --expose 8080 -p $PORT_APP:8080 dockercontainervm/retroboard:latest bash

@@ -85,6 +85,8 @@ public class LineCoverageFactory extends
 				throw new IllegalStateException("Fill lines_to_cover property with line numbers since filter_lines_to_cover = true");
 			logger.info("Lines to cover list size: " + linesToCover.size());
 
+			logger.info("TARGETED LINES FOR STATE COVERAGE: " + linesToCover.toString());
+
 			for(String className : LinePool.getKnownClasses()) {
 				// Only lines in CUT
 				if(!isCUT(className))

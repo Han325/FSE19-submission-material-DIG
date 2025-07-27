@@ -1,0 +1,37 @@
+version: '3.7'
+
+services:
+
+  webapp:
+    stdin_open: true
+    tty: true
+    working_dir: /home/retro-board
+    image: dockercontainervm/retroboard:latest
+    container_name: retroboard
+    expose:
+      - 8080
+    ports:
+      - "3000:8080"
+    entrypoint: ./run-services-docker.sh
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  chrome:
+    image: selenium/standalone-chrome:3.141.59-dubnium
+    shm_size: 2gb
+    expose:
+      - 4444
+      - 7900
+    ports:
+      - "4444:4444"
+      - "7900:7900"
+    volumes:
+      - /dev/shm:/dev/shm # Recommended for Chrome to avoid crashes
+    depends_on:
+      - webapp
+
+

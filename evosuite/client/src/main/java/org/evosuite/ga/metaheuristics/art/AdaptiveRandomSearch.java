@@ -24,6 +24,7 @@ package org.evosuite.ga.metaheuristics.art;
 
 import org.evosuite.ProgressMonitor;
 import org.evosuite.Properties;
+import org.evosuite.enhancer.DebugStoryLogger;
 import org.evosuite.enhancer.GeneticImprover;
 // NEW TINGS
 import org.evosuite.enhancer.LLMInputEnhancer; 
@@ -184,9 +185,13 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 		// and the outcome will be test cases that have different but realistc input vectors, this will be tossed in to the distance computation ting
 
 		// PASTE THIS NEW BLOCK IN ITS PLACE
+		long enhancementStartTime = System.nanoTime();
+		long llmenhancementStartTime = System.nanoTime(); // <-- START THE STOPWATCH
+		
 		int k = Properties.ART_ALGORITHM_NUM_CANDIDATES;
 		List<T> candidates = new ArrayList<T>();
 		logger.info("Generating " + k + " candidate(s) for enhancement...");
+
 
 		for (int i = 0; i < k; i++) {
 			T candidate = chromosomeFactory.getChromosome();
@@ -204,17 +209,30 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 
 			candidates.add(candidate);
 		}
+		long llmenhancementEndTime = System.nanoTime(); // <-- STOP THE STOPWATCH
+		long llmEnhancementTimeMs = TimeUnit.NANOSECONDS.toMillis(llmenhancementEndTime - llmenhancementStartTime);
+		DebugStoryLogger.log("Total LLM enhancement time for this cycle: " + llmEnhancementTimeMs + " ms");
+		DebugStoryLogger.log("The time in minutes: " + TimeUnit.MILLISECONDS.toMinutes(llmEnhancementTimeMs) + " mins");
+
+		long gienhancementStartTime = System.nanoTime(); // <-- START THE STOPWATCH
 
 		// THIS IS WHERE YOUR GI SHIT COMES IN
-		// int variationsPerSeed = 5; // This should be a Property later
-        // if(false){
-        //     logger.info("Handing off " + candidates.size() + " seeds to the Genetic Improver.");
-        //     // The GI module takes the k seeds and returns a k * m supercharged population
-        //     candidates = (List<T>) this.geneticImprover.diversifyPopulation((List<TestChromosome>) candidates, variationsPerSeed);
-        //     logger.info("Genetic Improver returned a supercharged population of " + candidates.size() + " candidates.");
-        // }
+		int variationsPerSeed = 5; // This should be a Property later
+		logger.info("Handing off " + candidates.size() + " seeds to the Genetic Improver.");
+		// The GI module takes the k seeds and returns a k * m supercharged population
+		candidates = (List<T>) this.geneticImprover.diversifyPopulation((List<TestChromosome>) candidates, variationsPerSeed);
+		logger.info("Genetic Improver returned a supercharged population of " + candidates.size() + " candidates.");
 
-			
+		long gienhancementEndTime = System.nanoTime(); // <-- STOP THE STOPWATCH
+		long giEnhancementTimeMs = TimeUnit.NANOSECONDS.toMillis(gienhancementEndTime - gienhancementStartTime);
+		DebugStoryLogger.log("Total GI enhancement time for this cycle: " + giEnhancementTimeMs + " ms");
+		DebugStoryLogger.log("The time in minutes: " + TimeUnit.MILLISECONDS.toMinutes(giEnhancementTimeMs) + " mins");
+
+		long enhancementEndTime = System.nanoTime(); // <-- STOP THE STOPWATCH
+		long totalEnhancementTimeMs = TimeUnit.NANOSECONDS.toMillis(enhancementEndTime - enhancementStartTime);
+		DebugStoryLogger.log("Total LLM+GI enhancement overhead for this cycle: " + totalEnhancementTimeMs + " ms");
+		DebugStoryLogger.log("The time in minutes: " + TimeUnit.MILLISECONDS.toMinutes(totalEnhancementTimeMs) + " mins");
+
 		long startDistanceTime = System.nanoTime();
 		//logger.debug("Start distance time computation");
 		DistanceComputation<T> distanceComputation = new DistanceComputation<>(candidates,alreadyExecutedTestCases,currentIteration);

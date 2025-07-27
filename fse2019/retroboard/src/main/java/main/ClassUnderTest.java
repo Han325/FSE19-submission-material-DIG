@@ -569,7 +569,7 @@ public class ClassUnderTest {
 	public void loginLoginContainerPage(custom_classes.PeopleNames peopleName) {
 		if (this.currentPage instanceof po.login.pages.LoginContainerPage) {
 			po.login.pages.LoginContainerPage page = (po.login.pages.LoginContainerPage) this.currentPage;
-			page.loginComponent.typeName(peopleName.name());
+			page.loginComponent.typeName(peopleName.value());
 			page.loginComponent.clickStart();
 			long timeout = 100;
 			if (page.loginComponent

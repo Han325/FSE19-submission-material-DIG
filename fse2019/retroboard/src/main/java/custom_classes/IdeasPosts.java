@@ -2,22 +2,28 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum IdeasPosts implements TestData {
+public class IdeasPosts implements TestData {
 
-    REQUIREMENTS ("Probe further with the client on requirements"),
-    STORYPOINTS ("Plan for fewer storypoints"),
-    FRIDAYNIGHT ("Have a fridaynight drink with the team"),
-    MEETINGS ("Less meetings"),
-    SUPPLIER ("Discuss with supplier"),
-    DEVOPS ("Ask for edit rights at devops");
+    public final String value;
 
-    private final String ideaPost;
+    public static final String[] examples = {
+        "Probe further with the client on requirements",
+        "Plan for fewer storypoints",
+        "Have a fridaynight drink with the team",
+        "Less meetings",
+        "Discuss with supplier",
+        "Ask for edit rights at devops"
+    };
 
-    IdeasPosts(String ideaPost){
-        this.ideaPost = ideaPost;
+    private IdeasPosts(String ideaPost){
+        this.value = ideaPost;
+    }
+
+    public static IdeasPosts fromString(String s) {
+        return new IdeasPosts(s);
     }
 
     public String value(){
-        return this.ideaPost;
+        return this.value;
     }
 }

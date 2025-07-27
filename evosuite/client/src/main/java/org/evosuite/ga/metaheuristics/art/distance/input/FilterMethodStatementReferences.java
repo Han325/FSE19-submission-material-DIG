@@ -51,8 +51,9 @@ public class FilterMethodStatementReferences implements Predicate<VariableRefere
                 //FieldStatement fieldStatement = (FieldStatement) parameterStmt;
                 //logger.debug("FieldStatement: " + fieldStatement.getCode());
                 return true;
-            }
-            else{
+            }else if (parameterStmt instanceof MethodStatement) {
+                return true;
+            }else{
                 //logger.warn("FilterMethodReferences. Unhandled unknown parameter statement reference " + parameterStmt + " " + parameterStmt.getClass().getName());
                 throw new IllegalStateException("FilterMethodReferences. Unhandled unknown parameter statement reference " + parameterStmt.getCode() + " class " + parameterStmt.getClass().getName());
             }

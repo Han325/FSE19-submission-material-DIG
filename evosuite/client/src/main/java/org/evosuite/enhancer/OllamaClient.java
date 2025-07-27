@@ -21,6 +21,7 @@ public class OllamaClient {
     private static final String OLLAMA_HOST_IP = "10.0.2.2"; // Changed from "192.168.64.1"
     
     private static final String OLLAMA_API_URL = "http://" + OLLAMA_HOST_IP + ":11434/api/generate";
+    // private static final String OLLAMA_API_URL = "https://b63057e8e5b0.ngrok-free.app:11434/api/generate";
     private static final int CONNECT_TIMEOUT_MS = 10000; // 10 seconds
     private static final int READ_TIMEOUT_MS = 120000;   // 2 minutes
 

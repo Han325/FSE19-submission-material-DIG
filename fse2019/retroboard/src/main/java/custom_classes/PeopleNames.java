@@ -2,19 +2,25 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum PeopleNames implements TestData {
+public class PeopleNames implements TestData {
+    public final String value;
 
-    JOHN ("John"),
-    MIKE ("Mike"),
-    MARK ("Mark");
+    public static final String[] examples = {
+        "John",
+        "Mike",
+        "Mark"
+    };
 
-    private final String name;
 
-    PeopleNames(String name){
-        this.name = name;
+    private PeopleNames(String name){
+        this.value = name;
+    }
+
+    public static PeopleNames fromString(String s) {
+        return new PeopleNames(s);
     }
 
     public String value(){
-        return this.name;
+        return this.value;
     }
 }

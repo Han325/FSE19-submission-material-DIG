@@ -12,8 +12,9 @@ public class Main {
 
     public static void main(String[] args){
 
+        PeopleNames peopleNames = PeopleNames.fromString("John");
         ClassUnderTest classUnderTest0 = new ClassUnderTest();
-        classUnderTest0.loginLoginContainerPage(PeopleNames.JOHN);
+        classUnderTest0.loginLoginContainerPage(peopleNames);
 
     }
 }

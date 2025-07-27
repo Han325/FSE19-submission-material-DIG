@@ -280,7 +280,7 @@ public class ClassUnderTestApogen {
 	public void loginLoginPage(custom_classes.PeopleNames peopleName) {
 		if (this.currentPage instanceof po_apogen.LoginPage) {
 			po_apogen.LoginPage page = (po_apogen.LoginPage) this.currentPage;
-			page.loginComponent.typeName(peopleName.name());
+			page.loginComponent.typeName(peopleName.value());
 			page.loginComponent.clickStart();
 			long timeout = 100;
 			if (page.loginComponent

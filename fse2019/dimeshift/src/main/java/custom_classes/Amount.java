@@ -5,19 +5,21 @@ import po_utils.TestData;
 
 public class Amount implements TestData {
 
-    // The core value field - now a double for realistic money
-    public final double value;
+    // It only holds the raw string. That's it.
+    public final String value;
 
-    // The private constructor
-    private Amount(double amountValue) {
-        this.value = amountValue;
+    // The constructor is 100% safe. It just stores the string.
+    public Amount(String rawValue) {
+        this.value = rawValue;
     }
 
+    // The factory method is also 100% safe.
     public static Amount fromString(String s) {
-        return new Amount(Double.parseDouble(s));
+        return new Amount(s);
     }
-
-    public double value() {
+    
+    // The PO method calls this to get the payload for the browser.
+    public String value() {
         return this.value;
     }
 }

@@ -2,22 +2,28 @@ package custom_classes;
 
 import po_utils.TestData;
 
-public enum NotWentWellPosts implements TestData {
+public class NotWentWellPosts implements TestData {
 
-    CLARITY ("Clarity on requirements"),
-    LATE_WORK ("Late work nights"),
-    LONG_BUILDS ("Build takes to long"),
-    TERRIBLE_COFFEE ("Coffee taste terrible"),
-    MEETINGS ("Too many meetings"),
-    DEV_TIME ("Dev time consumed in next release estimation");
+    public final String value;
 
-    private final String notWentWellPost;
+    public static final String[] examples = {
+        "Clarity on requirements",
+        "Late work nights",
+        "Build takes too long",
+        "Coffee tastes terrible",
+        "Too many meetings",
+        "Dev time consumed in next release estimation"
+    };
 
-    NotWentWellPosts(String notWentWellPost){
-        this.notWentWellPost = notWentWellPost;
+    private NotWentWellPosts(String notWentWellPost){
+        this.value = notWentWellPost;
+    }
+
+    public static NotWentWellPosts fromString(String s) {
+        return new NotWentWellPosts(s);
     }
 
     public String value(){
-        return this.notWentWellPost;
+        return this.value;
     }
 }

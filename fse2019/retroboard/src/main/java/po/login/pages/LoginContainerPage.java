@@ -27,7 +27,7 @@ public class LoginContainerPage implements PageObject {
 
     //tested
     public PageObject login(PeopleNames peopleName){
-        this.loginComponent.typeName(peopleName.name());
+        this.loginComponent.typeName(peopleName.value());
         this.loginComponent.clickStart();
         long timeout = 100;
         if(this.loginComponent.waitForElementBeingPresentOnPage(By.xpath("//button[text()=\"Create a new session\"]"),timeout, TimeUnit.MILLISECONDS)){
