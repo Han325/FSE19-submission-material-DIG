@@ -311,23 +311,24 @@ public class TestSuiteMinimizer {
                     logger.warn("Minimization timeout. Roll back to original test suite");
                     return;
                 }
-                
-//                // TODO: Need proper list of covered goals
-                copy.getTestCase().clearCoveredGoals();
-
-                // Add ALL goals covered by the minimized test
-                for (TestFitnessFunction g : goals) {
-                    if (g.isCovered(copy)) { // isCovered(copy) adds the goal
-                        covered.add(g);
-                        logger.info("Goal covered by minimized test: " + g);
+                if (copy != null) {
+                    // TODO: Need proper list of covered goals
+                    copy.getTestCase().clearCoveredGoals();
+    
+                    // Add ALL goals covered by the minimized test
+                    for (TestFitnessFunction g : goals) {
+                        if (g.isCovered(copy)) { // isCovered(copy) adds the goal
+                            covered.add(g);
+                            logger.info("Goal covered by minimized test: " + g);
+                        }
                     }
+    
+                    minimizedTests.add(copy);
+                    minimizedSuite.insertTest(copy.getTestCase());
+    
+                    logger.info("After new test the suite covers " + covered.size() + "/"
+                            + goals.size() + " goals");
                 }
-
-                minimizedTests.add(copy);
-                minimizedSuite.insertTest(copy.getTestCase());
-
-                logger.info("After new test the suite covers " + covered.size() + "/"
-                        + goals.size() + " goals");
 
             } else {
                 logger.info("Goal is not covered: " + goal);

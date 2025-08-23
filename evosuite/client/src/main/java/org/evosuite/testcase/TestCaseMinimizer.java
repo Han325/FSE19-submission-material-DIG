@@ -168,7 +168,7 @@ public class TestCaseMinimizer {
 			// custom exceptions. Therefore these exceptions have to be filtered when the test case is executed.
 			// The test case will be printed with try catches if a statement throws exceptions
 			c.getTestCase().setMinimizedFailed(true);
-			return c;
+			return null;
 		}
 
 		//TODO: add back this check

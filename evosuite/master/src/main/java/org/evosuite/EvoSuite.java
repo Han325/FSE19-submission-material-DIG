@@ -297,7 +297,7 @@ public class EvoSuite {
     public static void main(String[] args) {
 
         // START: Add this debugging code
-        System.out.println("REFINING PROMPTS FAM");
+        System.out.println("CAPPING FAM BIG MAN TING, WAGWAN?");
         // END: Add this debugging code
 
         try 

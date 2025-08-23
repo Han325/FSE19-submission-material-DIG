@@ -73,15 +73,14 @@ public class InputVectorDistance {
         double rawDistance = 0.0;
 
         // --- APPLY WEIGHTS BASED ON PRIMITIVE TYPE ---
-        if (p1 instanceof EnumPrimitiveStatement) {
-            rawDistance = 1.0 * WEIGHT_ENUM;
-        } else if (val1 instanceof String) {
+       
+        if (val1 instanceof String && val2 instanceof String) {
             int levDistance = Levenshtein.computeDistance((String) val1, (String) val2);
-            rawDistance = (double) levDistance * WEIGHT_STRING_NUMERIC;
-        } else if (val1 instanceof Integer) {
+            return (double) levDistance * WEIGHT_STRING_NUMERIC;
+        } else if (val1 instanceof Integer && val2 instanceof Integer) {
             double diff = Math.abs(((Integer) val1).doubleValue() - ((Integer) val2).doubleValue());
             rawDistance = diff * WEIGHT_STRING_NUMERIC;
-        } else if (val1 instanceof Double) {
+        } else if (val1 instanceof Double && val2 instanceof Double) {
             double diff = Math.abs((Double) val1 - (Double) val2);
             rawDistance = diff * WEIGHT_STRING_NUMERIC;
         } else {

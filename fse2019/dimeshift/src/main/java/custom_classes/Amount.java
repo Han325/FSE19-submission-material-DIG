@@ -9,7 +9,7 @@ public class Amount implements TestData {
     public final String value;
 
     // The constructor is 100% safe. It just stores the string.
-    public Amount(String rawValue) {
+    private Amount(String rawValue) {
         this.value = rawValue;
     }
 

@@ -1838,6 +1838,10 @@ public class Properties {
 	@Parameter(key = "queue_capacity", group = "Selenium", description = "Capacity of the queue that keeps already executed test cases.")
 	public static int QUEUE_CAPACITY = 0;
 
+	// LLM X GI ENHANCEMENT 
+	@Parameter(key = "max_evolve_cycles", description = "The maximum number of evolve() cycles to run")
+	public static int MAX_EVOLVE_CYCLES = 0; //
+
 	/**
 	 * Get all parameters that are available
 	 *

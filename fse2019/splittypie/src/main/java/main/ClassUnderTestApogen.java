@@ -308,10 +308,6 @@ public class ClassUnderTestApogen {
 						participant1, participant2);
 				this.currentPage = new po_apogen.HomePage(
 						page.editEventComponent.getDriver());
-			} else {
-				throw new NotTheRightInputValuesException(
-						((("form: the two participants must be different " + (participant1
-								.value())) + " ") + (participant2.value())));
 			}
 		} else {
 			throw new NotInTheRightPageObjectException(

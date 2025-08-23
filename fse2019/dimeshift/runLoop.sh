@@ -160,7 +160,7 @@ if [ "$STRATEGY" == "mosa" ] ; then
     ./run.sh -class main.ClassUnderTestApogen -generateMOSuite -Dtest_dir=$TEST_DIR \
         -Dgraph_path=workspace/graphs/dimeshift-apogen.txt -Dstart_node=WalletPage \
         -Dlines_to_cover=41:60:74:92:107:126:144:158:174:194:208:222:236:250:263:278:296:314:333:347:362:376:390:404:423:437:451:469:492:510:525:543:562:585:606 \
-        -Dreport_dir=$TEST_DIR/evosuite-report -Dsearch_budget=$SEARCH_BUDGET -criterion line \
+        -Dreport_dir=$TEST_DIR/evosuite-report-Dsearch_budget=$SEARCH_BUDGET -criterion line \
         > ~/Desktop/logs$SUFFIX.txt 2> ~/Desktop/errors$SUFFIX.txt
   else
     ./run.sh -class main.ClassUnderTest -generateMOSuite -Dtest_dir=$TEST_DIR \
@@ -217,6 +217,3 @@ echo "Removing session file if exists"
 if [[ -e $HOME/Desktop/$PROJECT_NAME.ser ]]; then
     rm $HOME/Desktop/$PROJECT_NAME.ser
 fi
-
-
-

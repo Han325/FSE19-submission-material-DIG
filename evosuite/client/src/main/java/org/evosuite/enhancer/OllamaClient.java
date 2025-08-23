@@ -14,7 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-public class OllamaClient {
+public class OllamaClient implements LLMClient {
 
     private static final Logger logger = LoggerFactory.getLogger(OllamaClient.class);
     // --- IMPORTANT: CHANGE THIS TO YOUR DEVICE IP ADDRESS ---
@@ -29,6 +29,7 @@ public class OllamaClient {
         logger.info("OllamaClient initialized for host: {}", OLLAMA_API_URL);
     }
 
+    @Override
     public String generate(String jsonPrompt) {
         HttpURLConnection conn = null;
         try {

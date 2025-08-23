@@ -27,20 +27,42 @@ public class LLMInputEnhancer {
     private boolean isCurrentlyModifying = false;
 
     private final ContextExtractor contextExtractor;
-    private final OllamaClient ollamaClient;
+    private final LLMClient llmClient;
     private final String modelName;
 
     public LLMInputEnhancer() {
         this.contextExtractor = new ContextExtractor();
-        this.ollamaClient = new OllamaClient();
+
+        String provider = "ollama";
+        if (provider == null || provider.trim().isEmpty()) {
+            provider = "ollama";
+            logger.warn("LLM_PROVIDER environment variable not set. Defaulting to '{}'", provider);
+        }
+
+        switch (provider.toLowerCase()) {
+            case "openai":
+                this.llmClient = new OpenAIClient();
+                logger.info("Using OpenAI client.");
+                break;
+            case "ollama":
+            default:
+                this.llmClient = new OllamaClient();
+                logger.info("Using Ollama client.");
+                break;
+        }
+
         String envModel = System.getenv("LLM_MODEL");
         if (envModel != null && !envModel.isEmpty()) {
             this.modelName = envModel;
         } else {
-            this.modelName = "qwen2.5:7b";
-            logger.warn("LLM_MODEL environment variable not set. Using default model: {}", this.modelName);
+            if ("openai".equalsIgnoreCase(provider)) {
+                this.modelName = "gpt-4o-mini"; 
+            } else {
+                this.modelName = "qwen2.5:7b";
+            }
+            logger.warn("LLM_MODEL environment variable not set. Using default model for provider '{}': {}", provider, this.modelName);
         }
-        DebugStoryLogger.log("LLMInputEnhancer Initialized. DRY_RUN is: " + DRY_RUN + ". Model: " + this.modelName);
+        DebugStoryLogger.log("LLMInputEnhancer Initialized. Provider: " + provider.toUpperCase() + ". Model: " + this.modelName + ". DRY_RUN is: " + DRY_RUN);
     }
 
     public void enhanceCandidate(TestChromosome candidate) {
@@ -68,16 +90,16 @@ public class LLMInputEnhancer {
                 DebugStoryLogger.logParamHeader(i + 1, contexts.size(), context.getSemanticVariable().getName(),
                         context.getSemanticVariableType(), context.getOriginalPrimitiveValue());
 
-                String jsonRequest = formatRequestForOllama(context);
+                String jsonRequest = createLlmRequestPayload(context);
                 PromptLogger.log(jsonRequest);
                 DebugStoryLogger.logPrompt(jsonRequest);
 
                 long startTime = System.currentTimeMillis();
-                String ollamaResponse = ollamaClient.generate(jsonRequest);
+                String llmResponse = llmClient.generate(jsonRequest);
                 long duration = System.currentTimeMillis() - startTime;
 
                 try {
-                    JSONObject fullResponseJson = new JSONObject(ollamaResponse);
+                    JSONObject fullResponseJson = new JSONObject(llmResponse);
                     if (fullResponseJson.has("context")) {
                         fullResponseJson.remove("context");
                     }
@@ -206,83 +228,8 @@ public class LLMInputEnhancer {
         return value;
     }
 
-    // private String formatRequestForOllama(VariableUsageContext context) {
-    // JSONObject contextJson = new JSONObject();
-    // contextJson.put("variable_type", context.getSemanticVariableType());
-    // contextJson.put("initial_value", context.getOriginalPrimitiveValue());
-    // contextJson.put("usage_in_methods", new
-    // JSONArray(context.getUsageMethodNames()));
-
-    // List<String> preferredValues = new ArrayList<>();
-
-    // Statement declaration = context.getDeclarationStatement();
-    // if (declaration instanceof EnumPrimitiveStatement) {
-    // @SuppressWarnings("rawtypes")
-    // EnumPrimitiveStatement enumStmt = (EnumPrimitiveStatement) declaration;
-    // contextJson.put("possible_enum_values", new
-    // JSONArray(enumStmt.getEnumValues()));
-    // } else {
-    // try {
-    // Class<?> targetClass = context.getSemanticVariable().getVariableClass();
-    // Field examplesField = targetClass.getField("examples");
-    // // Check if it's a public static final String[]
-    // int modifiers = examplesField.getModifiers();
-    // if (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers) &&
-    // examplesField.getType().equals(String[].class)) {
-    // String[] examples = (String[]) examplesField.get(null); // Get the static
-    // array
-    // preferredValues.addAll(Arrays.asList(examples));
-    // }
-    // } catch (NoSuchFieldException e) {
-    // // This is fine, it just means the class doesn't have an examples field.
-    // } catch (Exception e) {
-    // logger.warn("Reflection failed while trying to find 'examples' field for {}:
-    // {}",
-    // context.getSemanticVariableType(), e.getMessage());
-    // }
-    // }
-
-    // if (!preferredValues.isEmpty()) {
-    // contextJson.put("preferred_values", new JSONArray(preferredValues));
-    // }
-
-    // String taskInstruction = "Analyze the variable. Your goal is to suggest ONE
-    // SINGLE replacement value for `initial_value`. If the `initial_value` is
-    // semantically poor (e.g., a negative ID, an unrealistic amount), suggest a
-    // better, single value. If the `initial_value` is already plausible, you can
-    // suggest a different single value for test diversity, or suggest keeping the
-    // original value. The `suggested_value_as_string` MUST be a single, simple
-    // value that can be directly parsed into the variable's type. It must NOT
-    // contain colons, commas, or multiple assignments.";
-    // if (contextJson.has("possible_enum_values") ||
-    // contextJson.has("preferred_values")) {
-    // taskInstruction += " CRITICAL RULE: If `possible_enum_values` or
-    // `preferred_values` exists, your suggestion should be semantically similar to
-    // those examples. For enums, you MUST pick one from the list. For the
-    // `preferred_values`, use it as a guide to suggest a plausible value, please
-    // refrain from reusing the same value as this will make you a glorified random
-    // choice engine.";
-    // }
-
-    // String prompt = "### ROLE ###\nYou are an AI test data generator. Your task
-    // is to analyze a single declared variable and its usages, then decide if its
-    // initial value should be changed.\n\n"
-    // + "### VARIABLE CONTEXT ###\n" + contextJson.toString(2) + "\n\n"
-    // + "### TASK ###\n" + taskInstruction
-    // + " Provide your response as a single JSON object with this exact schema: {
-    // \"reasoning_for_change_or_keep\": \"string\", \"suggested_value_as_string\":
-    // \"string\", \"confidence_low_medium_high\": \"string\" }";
-
-    // JSONObject finalRequest = new JSONObject();
-    // finalRequest.put("model", this.modelName);
-    // finalRequest.put("format", "json");
-    // finalRequest.put("stream", false);
-    // finalRequest.put("prompt", prompt);
-
-    // return finalRequest.toString();
-    // }
-
-    private String formatRequestForOllama(VariableUsageContext context) {
+    
+    private String createLlmRequestPayload(VariableUsageContext context) {
         JSONObject contextJson = new JSONObject();
         contextJson.put("variable_type", context.getSemanticVariableType());
         contextJson.put("initial_value", context.getOriginalPrimitiveValue());

@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class ContextExtractor {
 
     private static final Logger logger = LoggerFactory.getLogger(ContextExtractor.class);
-    private static final Set<String> BLACKLISTED_TYPES = new HashSet<>(Arrays.asList("custom_classes.Id"));
+    private static final Set<String> BLACKLISTED_TYPES = new HashSet<>(Arrays.asList("custom_classes.Id", "custom_classes.Date"));
 
     public List<VariableUsageContext> extractContexts(TestChromosome candidate) {
         List<VariableUsageContext> contexts = new ArrayList<>();

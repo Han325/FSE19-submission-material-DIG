@@ -27,7 +27,7 @@ import org.evosuite.Properties;
 import org.evosuite.enhancer.DebugStoryLogger;
 import org.evosuite.enhancer.GeneticImprover;
 // NEW TINGS
-import org.evosuite.enhancer.LLMInputEnhancer; 
+import org.evosuite.enhancer.LLMInputEnhancer;
 import org.evosuite.coverage.FitnessFunctions;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
@@ -52,8 +52,11 @@ import org.evosuite.testsuite.TestSuiteFitnessFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -70,12 +73,20 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 
 	private static final Logger logger = LoggerFactory.getLogger(AdaptiveRandomSearch.class);
 
-	private final LLMInputEnhancer llmEnhancer; 
-    private final GeneticImprover geneticImprover; 
+	// --- START OF CHANGE 1 ---
+	private static final boolean SEED_COLLECTION_MODE = false; // SET TO true TO COLLECT SEEDS
+	private static final boolean USE_SEED_BANK_MODE = false; // SET to true to USE the seed bank for the experiment
+	private static List<TestChromosome> seedBank = new ArrayList<>();
+	private static int seedBankIndex = 0; // An index to serve seeds one by one
 
+	private final LLMInputEnhancer llmEnhancer;
+	private final GeneticImprover geneticImprover;
 
-	/** Map used to store the covered test goals (keys of the map) and the corresponding covering test cases (values of the map) **/
-	protected Map<FitnessFunction<T>, T> archive = new  HashMap<FitnessFunction<T>, T>();
+	/**
+	 * Map used to store the covered test goals (keys of the map) and the
+	 * corresponding covering test cases (values of the map)
+	 **/
+	protected Map<FitnessFunction<T>, T> archive = new HashMap<FitnessFunction<T>, T>();
 
 	private List<T> alreadyExecutedTestCases;
 
@@ -95,19 +106,19 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 	 * </p>
 	 *
 	 * @param factory
-	 *            a {@link ChromosomeFactory} object.
+	 *                a {@link ChromosomeFactory} object.
 	 */
 	public AdaptiveRandomSearch(ChromosomeFactory<T> factory) {
 		super(factory);
-		if(Properties.CRITERION.length == 1){
+		if (Properties.CRITERION.length == 1) {
 			suiteFitness = FitnessFunctions.getFitnessFunction(Properties.CRITERION[0]);
 			logger.info("SuiteFitness AdaptiveRandomSearch: " + suiteFitness.getClass());
-			if(Properties.QUEUE_ART){
-			    this.alreadyExecutedTestCases = new CircularFifoQueue<>(Properties.QUEUE_CAPACITY);
-            }else{
-			    this.alreadyExecutedTestCases = new ArrayList<>();
-            }
-		}else{
+			if (Properties.QUEUE_ART) {
+				this.alreadyExecutedTestCases = new CircularFifoQueue<>(Properties.QUEUE_CAPACITY);
+			} else {
+				this.alreadyExecutedTestCases = new ArrayList<>();
+			}
+		} else {
 			String criteria = Arrays.stream(Properties.CRITERION)
 					.map(String::valueOf).collect(Collectors.joining(":"));
 			throw new IllegalStateException(this.getClass() + " constructor: AdaptiveRandomSearch supports " +
@@ -117,98 +128,82 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 		this.llmEnhancer = new LLMInputEnhancer();
 		this.geneticImprover = new GeneticImprover();
 
+		if (USE_SEED_BANK_MODE) {
+			String desktopPath = System.getProperty("user.home") + "/Desktop/";
+			String filename = desktopPath + "seed_bank.ser";
+			logger.info("USE_SEED_BANK_MODE is active. Attempting to load seeds from " + filename);
+			try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename))) {
+				seedBank = (List<TestChromosome>) ois.readObject();
+				logger.info("Successfully loaded " + seedBank.size() + " seeds from the bank.");
+			} catch (Exception e) {
+				logger.error("FATAL: Could not load seed bank from file. The experiment cannot run.", e);
+				// We should probably crash here if the file is missing
+				throw new RuntimeException("Failed to load seed_bank.ser", e);
+			}
+		}
+
 	}
 
 	private static final long serialVersionUID = -7685015421245920459L;
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.evosuite.ga.GeneticAlgorithm#evolve()
 	 */
 	/** {@inheritDoc} */
 	@Override
 	protected void evolve() {
-		// int k = Properties.ART_ALGORITHM_NUM_CANDIDATES;
-		// List<T> candidates = new ArrayList<T>();
-		// for (int i = 0; i < k; i++) {
-		// 	T candidate = chromosomeFactory.getChromosome();
-		// 	if(!(candidate instanceof TestChromosome)){
-		// 		throw new IllegalStateException(this.getClass().getName() + " evolve: adaptive random testing solution " +
-		// 				"currently supported only for evolution of test cases");
-		// 	}
-		// 	candidates.add(candidate);
-		// }
-
-		// // WORK GONE BE DONE HERE FAM
-
-		// logger.info("OUR CANDIDATES LOOKING LIKE THIS FAM FIRST TEN OF THIS TING: ");
-		// for (int i = 0; i < Math.min(10, candidates.size()); i++) {
-		// 	System.out.println(candidates.get(i));
-		// }
-
-		//     // --- ADD THESE LINES *DIRECTLY AFTER* YOUR FOR LOOP ---
-		// String filePath = System.getProperty("user.home") + "/Desktop/candidates_output.txt";
-		// PrintStream originalOut = System.out; // Save the console PrintStream
-
-		// try {
-		// 	// Create a PrintStream that appends to the file
-		// 	PrintStream fileOut = new PrintStream(new FileOutputStream(filePath, true)); // The 'true' is for append mode
-		// 	System.setOut(fileOut); // Redirect System.out to the file
-
-		// 	// REPEAT YOUR FOR LOOP HERE, exactly as it was originally
-		// 	// This is what will now write to the file
-		// 	// If you had a logger.info before, and want it in the file too,
-		// 	// you'd put a System.out.println here instead, like:
-		// 	System.out.println("\n--- START OF NEW CANDIDATE OUTPUT BLOCK ---"); // Optional separator for readability
-		// 	// System.out.println("OUR CANDIDATES LOOKING LIKE THIS FAM FIRST TEN OF THIS TING: "); // If you want this header in the file
-		// 	for (int i = 0; i < Math.min(10, candidates.size()); i++) {
-		// 		System.out.println(candidates.get(i));
-		// 	}
-		// 	System.out.println("--- END OF NEW CANDIDATE OUTPUT BLOCK ---\n"); // Optional separator for readability
-
-
-		// 	fileOut.close(); // Close the file stream to save changes
-		// 	System.setOut(originalOut); // Restore System.out to the console
-
-		// 	// This line will print to the console (because System.out is restored)
-		// 	System.out.println("Candidate output appended to: " + filePath);
-
-		// } catch (FileNotFoundException e) {
-		// 	System.setOut(originalOut); // Crucial: restore System.out even on error
-		// 	System.err.println("ERROR: Could not write to file " + filePath + ": " + e.getMessage());
-		// } catch (Exception e) { // Catch any other unexpected IO errors
-		// 	System.setOut(originalOut);
-		// 	System.err.println("AN UNEXPECTED ERROR OCCURRED: " + e.getMessage());
-		// }
-    	// // --- END OF ADDED LINES ---
-
-		// our supercharged evolve will have first a LLM to generate an enhanced seed, and we gon mutate it with respect the input vectors, 
-		// and the outcome will be test cases that have different but realistc input vectors, this will be tossed in to the distance computation ting
-
-		// PASTE THIS NEW BLOCK IN ITS PLACE
 		long enhancementStartTime = System.nanoTime();
 		long llmenhancementStartTime = System.nanoTime(); // <-- START THE STOPWATCH
-		
+
 		int k = Properties.ART_ALGORITHM_NUM_CANDIDATES;
 		List<T> candidates = new ArrayList<T>();
 		logger.info("Generating " + k + " candidate(s) for enhancement...");
 
-
 		for (int i = 0; i < k; i++) {
-			T candidate = chromosomeFactory.getChromosome();
 
-			if(!(candidate instanceof TestChromosome)){
-				throw new IllegalStateException(this.getClass().getName() + " evolve: adaptive random testing solution " +
-						"currently supported only for evolution of test cases");
+			if (USE_SEED_BANK_MODE) {
+				T candidate;
+				// --- EXPERIMENT MODE ---
+				// Hijack the generation. Instead of calling the factory,
+				// we pull the next available seed from our loaded bank.
+				if (seedBankIndex >= seedBank.size()) {
+					logger.warn("Seed bank exhausted. Resetting index. This may reduce diversity.");
+					seedBankIndex = 0; // Loop back to the start if we run out
+				}
+				candidate = (T) seedBank.get(seedBankIndex).clone(); // Get a clone
+				seedBankIndex++;
+
+				candidates.add(candidate);
+			} else {
+				T candidate = chromosomeFactory.getChromosome();
+
+				if (!(candidate instanceof TestChromosome)) {
+					throw new IllegalStateException(
+							this.getClass().getName() + " evolve: adaptive random testing solution " +
+									"currently supported only for evolution of test cases");
+				}
+				// --- ENHANCEMENT CALL ---
+				// This is where our new module is called. It enhances the candidate in-place.
+				logger.info("Enhancing candidate " + (i + 1) + "/" + k);
+				this.llmEnhancer.enhanceCandidate((TestChromosome) candidate);
+
+				candidates.add(candidate);
+				// --- END OF ENHANCEMENT CALL ---
 			}
 
-			// --- ENHANCEMENT CALL ---
-			// This is where our new module is called. It enhances the candidate in-place.
-			logger.info("Enhancing candidate " + (i + 1) + "/" + k);
-			this.llmEnhancer.enhanceCandidate((TestChromosome) candidate);
-			// --- END OF ENHANCEMENT CALL ---
-
-			candidates.add(candidate);
 		}
+
+		if (SEED_COLLECTION_MODE) {
+			// We take the high-quality, LLM-blessed seeds that were just created
+			// and add them to our persistent bank.
+			for (T candidate : candidates) {
+				seedBank.add((TestChromosome) candidate.clone()); // Add a clone to be safe
+			}
+			logger.info("SIPHON: Added " + k + " seeds to the bank. Total size: " + seedBank.size());
+		}
+
 		long llmenhancementEndTime = System.nanoTime(); // <-- STOP THE STOPWATCH
 		long llmEnhancementTimeMs = TimeUnit.NANOSECONDS.toMillis(llmenhancementEndTime - llmenhancementStartTime);
 		DebugStoryLogger.log("Total LLM enhancement time for this cycle: " + llmEnhancementTimeMs + " ms");
@@ -220,72 +215,82 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 		int variationsPerSeed = 5; // This should be a Property later
 		logger.info("Handing off " + candidates.size() + " seeds to the Genetic Improver.");
 		// The GI module takes the k seeds and returns a k * m supercharged population
-		candidates = (List<T>) this.geneticImprover.diversifyPopulation((List<TestChromosome>) candidates, variationsPerSeed);
-		logger.info("Genetic Improver returned a supercharged population of " + candidates.size() + " candidates.");
+		candidates = (List<T>) this.geneticImprover.diversifyPopulation((List<TestChromosome>) candidates,
+				variationsPerSeed);
+		logger.info("Genetic Improver returned a supercharged population of " +
+				candidates.size() + " candidates.");
 
 		long gienhancementEndTime = System.nanoTime(); // <-- STOP THE STOPWATCH
 		long giEnhancementTimeMs = TimeUnit.NANOSECONDS.toMillis(gienhancementEndTime - gienhancementStartTime);
-		DebugStoryLogger.log("Total GI enhancement time for this cycle: " + giEnhancementTimeMs + " ms");
-		DebugStoryLogger.log("The time in minutes: " + TimeUnit.MILLISECONDS.toMinutes(giEnhancementTimeMs) + " mins");
+		DebugStoryLogger.log("Total GI enhancement time for this cycle: " +
+				giEnhancementTimeMs + " ms");
+		DebugStoryLogger.log("The time in minutes: " +
+				TimeUnit.MILLISECONDS.toMinutes(giEnhancementTimeMs) + " mins");
 
 		long enhancementEndTime = System.nanoTime(); // <-- STOP THE STOPWATCH
 		long totalEnhancementTimeMs = TimeUnit.NANOSECONDS.toMillis(enhancementEndTime - enhancementStartTime);
-		DebugStoryLogger.log("Total LLM+GI enhancement overhead for this cycle: " + totalEnhancementTimeMs + " ms");
-		DebugStoryLogger.log("The time in minutes: " + TimeUnit.MILLISECONDS.toMinutes(totalEnhancementTimeMs) + " mins");
+		DebugStoryLogger.log("Total LLM+GI enhancement overhead for this cycle: " +
+				totalEnhancementTimeMs + " ms");
+		DebugStoryLogger
+				.log("The time in minutes: " + TimeUnit.MILLISECONDS.toMinutes(totalEnhancementTimeMs) + " mins");
 
 		long startDistanceTime = System.nanoTime();
-		//logger.debug("Start distance time computation");
-		DistanceComputation<T> distanceComputation = new DistanceComputation<>(candidates,alreadyExecutedTestCases,currentIteration);
+		// logger.debug("Start distance time computation");
+		DistanceComputation<T> distanceComputation = new DistanceComputation<>(candidates, alreadyExecutedTestCases,
+				currentIteration);
 		T testCaseToExecute = distanceComputation.getTestCaseToExecute();
 		long timeElapsedDistanceInNs = (System.nanoTime() - startDistanceTime);
 		long timeElapsedDistanceInMs = TimeUnit.NANOSECONDS.toMillis(timeElapsedDistanceInNs);
 		TestCaseStatistics.getInstance().storeDistanceComputationTime(timeElapsedDistanceInMs);
-		//logger.debug("Time to compute distance: " + timeElapsedDistanceInMs);
+		// logger.debug("Time to compute distance: " + timeElapsedDistanceInMs);
 
 		long startExecutionTime = System.nanoTime();
-		//logger.debug("Start execute time computation");
+		// logger.debug("Start execute time computation");
 		this.calculateFitness(testCaseToExecute);
 		long timeElapsedExecutionInNs = (System.nanoTime() - startExecutionTime);
 		long timeElapsedExecutionInMs = TimeUnit.NANOSECONDS.toMillis(timeElapsedExecutionInNs);
 		TestCaseStatistics.getInstance().storeTestExecutionTime(timeElapsedExecutionInMs);
-		//logger.debug("Time to execute a test case: " + timeElapsedExecutionInMs);
-
-		if(Properties.CUT_EXCEPTIONS){
+		// logger.debug("Time to execute a test case: " + timeElapsedExecutionInMs);
+		// RIGHT FUCKING HERE HERE IS THE FUCKING PLACE IT WENT WRONG.
+		if (Properties.CUT_EXCEPTIONS) {
 			PageObjectTestCaseMinimizer pageObjectTestCaseMinimizer = new PageObjectTestCaseMinimizer();
 			CheckCondition.checkState(testCaseToExecute instanceof TestChromosome,
 					" evolve: required TestChromosome, found " + testCaseToExecute.getClass());
-			TestChromosome minimizedIndividual = pageObjectTestCaseMinimizer.minimizeIndividual((TestChromosome) testCaseToExecute);
-			List<Integer> methodCallPositionsAfterMinimization = this.getMethodCallPositions(minimizedIndividual.getTestCase());
+			TestChromosome minimizedIndividual = pageObjectTestCaseMinimizer
+					.minimizeIndividual((TestChromosome) testCaseToExecute);
+			List<Integer> methodCallPositionsAfterMinimization = this
+					.getMethodCallPositions(minimizedIndividual.getTestCase());
 			logger.debug("evolve: test case minimized " + minimizedIndividual);
-			if(methodCallPositionsAfterMinimization.size() == 0){
-				logger.warn("evolve: minimized individual has no method calls. It will not be included in the already executed test cases list.");
-			}else{
+			if (methodCallPositionsAfterMinimization.size() == 0) {
+				logger.warn(
+						"evolve: minimized individual has no method calls. It will not be included in the already executed test cases list.");
+			} else {
 				this.alreadyExecutedTestCases.add((T) minimizedIndividual);
 			}
-		}else{
+		} else {
 			this.alreadyExecutedTestCases.add(testCaseToExecute);
 		}
 
-		//replace old solution with the new one
-//		population.set(0,testCaseToExecute);
+		// replace old solution with the new one
+		// population.set(0,testCaseToExecute);
 
-		//update covered goals with the ones covered by the last solution
-//		updateCoveredGoals(population);
+		// update covered goals with the ones covered by the last solution
+		// updateCoveredGoals(population);
 
-		//update archive based on all solutions (all executed test cases)
-//		updateArchive(this.alreadyExecutedTestCases);
+		// update archive based on all solutions (all executed test cases)
+		// updateArchive(this.alreadyExecutedTestCases);
 
 		currentIteration++;
 
 		logger.debug("Generation=" + currentIteration + " Archive size=" + archive.size());
 	}
 
-	private List<Integer> getMethodCallPositions(TestCase tc){
+	private List<Integer> getMethodCallPositions(TestCase tc) {
 		List<Integer> methodCallPositions = new ArrayList<>();
 		int stmtPosition = 0;
-		while(tc.hasStatement(stmtPosition)){
+		while (tc.hasStatement(stmtPosition)) {
 			Statement statement = tc.getStatement(stmtPosition);
-			if(statement instanceof MethodStatement) {
+			if (statement instanceof MethodStatement) {
 				MethodStatement methodStatement = (MethodStatement) statement;
 				String graphEdge = GraphParser.fromMethodToEdge(methodStatement);
 				if (!graphEdge.isEmpty()) {
@@ -298,8 +303,9 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 		return methodCallPositions;
 	}
 
-
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.evosuite.ga.GeneticAlgorithm#initializePopulation()
 	 */
 	/** {@inheritDoc} */
@@ -310,9 +316,9 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 		notifySearchStarted();
 		currentIteration = 0;
 
-		if(Properties.CUT_EXCEPTIONS){
+		if (Properties.CUT_EXCEPTIONS) {
 			this.createAndMinimizeFirstIndividual();
-		}else{
+		} else {
 			// Create a random parent population P0
 			generateInitialPopulation(1);
 			// Determine fitness
@@ -326,7 +332,7 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 		this.notifyIteration();
 	}
 
-	private void createAndMinimizeFirstIndividual(){
+	private void createAndMinimizeFirstIndividual() {
 		logger.info("executing createAndMinimizeFirstIndividual function");
 		// Create a random parent population P0
 		generateInitialPopulation(1);
@@ -335,20 +341,24 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 		PageObjectTestCaseMinimizer pageObjectTestCaseMinimizer = new PageObjectTestCaseMinimizer();
 		CheckCondition.checkState(population.get(0) instanceof TestChromosome,
 				" createAndMinimizeFirstIndividual: required TestChromosome, found " + population.get(0).getClass());
-		TestChromosome minimizedIndividual = pageObjectTestCaseMinimizer.minimizeIndividual((TestChromosome) population.get(0));
-		List<Integer> methodCallPositionsAfterMinimization = this.getMethodCallPositions(minimizedIndividual.getTestCase());
+		TestChromosome minimizedIndividual = pageObjectTestCaseMinimizer
+				.minimizeIndividual((TestChromosome) population.get(0));
+		List<Integer> methodCallPositionsAfterMinimization = this
+				.getMethodCallPositions(minimizedIndividual.getTestCase());
 		logger.debug("createAndMinimizeFirstIndividual: test case minimized " + minimizedIndividual);
-		if(methodCallPositionsAfterMinimization.size() == 0){
+		if (methodCallPositionsAfterMinimization.size() == 0) {
 			clearPopulation();
 			this.createAndMinimizeFirstIndividual();
-		}else{
+		} else {
 			this.alreadyExecutedTestCases.add((T) minimizedIndividual);
 		}
 		logger.info("MOFL: initializePopulation: test case created " + (T) minimizedIndividual);
 
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.evosuite.ga.GeneticAlgorithm#generateSolution()
 	 */
 	/** {@inheritDoc} */
@@ -361,7 +371,7 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 			uncoveredGoals.add(goal);
 		}
 
-		if(Properties.INPUT_DISTANCE){
+		if (Properties.INPUT_DISTANCE) {
 			logger.info("Input distance enabled");
 			String javaProjectDirectoryStructure = "src/main/java";
 			String sourceCodeDirectory = System.getProperty("user.home")
@@ -375,35 +385,58 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 		if (population.isEmpty())
 			initializePopulation();
 
-		//update archive with covered goals (the ones that, for each goal, has fitness 0.0)
-//		updateCoveredGoals(population);
+		// update archive with covered goals (the ones that, for each goal, has fitness
+		// 0.0)
+		// updateCoveredGoals(population);
 		// update archive with goals covered so far (during initialization)
-//		updateArchive(population);
-
+		// updateArchive(population);
+		logger.info("The max evolve cycles is set to " + Properties.MAX_EVOLVE_CYCLES);
+		logger.info("The current iteration is " + currentIteration);
 		while (!isFinished() && this.getNumberOfCoveredGoals() < this.fitnessFunctions.size()) {
+			// if (Properties.MAX_EVOLVE_CYCLES > 0 && currentIteration >= Properties.MAX_EVOLVE_CYCLES) {
+			// 	logger.info("Reached max_evolve_cycles limit of " + Properties.MAX_EVOLVE_CYCLES + ". Ending search.");
+			// 	break; // Exit the loop
+			// }
 			evolve();
 			this.notifyIteration();
 		}
 
 		TestCaseStatistics.getInstance().setAlreadyExecutedTestCasesSize(this.alreadyExecutedTestCases.size());
 
-		//updateBestIndividualFromArchive();
+		// updateBestIndividualFromArchive();
 		completeCalculateFitness();
+
+		if (SEED_COLLECTION_MODE) {
+			String desktopPath = System.getProperty("user.home") + "/Desktop/";
+			String filename = desktopPath + "seed_bank.ser";
+			logger.info("Search budget exhausted. Saving collected seeds to file...");
+			try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filename))) {
+				oos.writeObject(seedBank);
+				logger.info(
+						"SEED COLLECTION COMPLETE. Successfully saved " + seedBank.size() + " seeds to " + filename);
+			} catch (Exception e) {
+				logger.error("FATAL: Failed to save seed bank to file.", e);
+			}
+		}
 		notifySearchFinished();
 	}
 
-	/*ADDED ---------------------------------------------------------------------------------------------------*/
+	/*
+	 * ADDED
+	 * -----------------------------------------------------------------------------
+	 * ----------------------
+	 */
 
-	private void printArchive(){
+	private void printArchive() {
 		List<T> listArchive = this.getArchive();
-		PrintObjectCollection.print(listArchive,this.getClass(),"Archive adaptive random testing");
+		PrintObjectCollection.print(listArchive, this.getClass(), "Archive adaptive random testing");
 	}
 
 	/**
 	 * Notify all search listeners of fitness evaluation
 	 *
 	 * @param chromosome
-	 *            a {@link org.evosuite.ga.Chromosome} object.
+	 *                   a {@link org.evosuite.ga.Chromosome} object.
 	 */
 	@Override
 	protected void notifyEvaluation(Chromosome chromosome) {
@@ -416,6 +449,7 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 
 	/**
 	 * This method computes the fitness scores only for the uncovered goals
+	 * 
 	 * @param c chromosome
 	 */
 	private void calculateFitness(T c) {
@@ -433,12 +467,13 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 
 	/**
 	 * This method computes the fitness scores for all (covered and uncovered) goals
+	 * 
 	 * @param c chromosome
 	 */
 	private void completeCalculateFitness(T c) {
 		for (FitnessFunction<T> fitnessFunction : fitnessFunctions) {
 			fitnessFunction.getFitness(c);
-			//notifyEvaluation(c);
+			// notifyEvaluation(c);
 		}
 	}
 
@@ -471,46 +506,56 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 		}
 	}
 
-	/** This method is used to print the number of test goals covered by the test cases stored in the current archive **/
+	/**
+	 * This method is used to print the number of test goals covered by the test
+	 * cases stored in the current archive
+	 **/
 	private int getNumberOfCoveredGoals() {
 		int n_covered_goals = this.archive.keySet().size();
 		logger.debug("# Covered Goals = " + n_covered_goals);
 		return n_covered_goals;
 	}
 
-	/** This method return the test goals covered by the test cases stored in the current archive **/
+	/**
+	 * This method return the test goals covered by the test cases stored in the
+	 * current archive
+	 **/
 	private Set<FitnessFunction<T>> getCoveredGoals() {
 		return this.archive.keySet();
 	}
 
 	/**
-	 * This method update the archive by adding test cases that cover new test goals, or replacing the
+	 * This method update the archive by adding test cases that cover new test
+	 * goals, or replacing the
 	 * old tests if the new ones are smaller (at the same level of coverage).
 	 *
 	 * @param solutionSet is the list of Chromosomes (poulation)
 	 */
-//	private void updateArchive(List<T> solutionSet) {
-//		// store the test cases that are optimal for the test goal in the
-//		// archive
-//		for (FitnessFunction<T> entry : this.getCoveredGoals()){
-//			double bestSize = this.archive.get(entry).size();
-//			for (T solution : solutionSet) {
-//				double value = entry.getFitness(solution);
-//				double size = solution.size();
-//				if (value == 0.0 && size < bestSize) {
-//					this.archive.put(entry, solution);
-//					bestSize = size;
-//				}
-//			}
-//		}
-//		//this.printArchive();
-//		logger.debug("UpdateArchive function covered goals size: " + this.getCoveredGoals().size());
-//		//PrintObjectCollection.print(this.getCoveredGoals(),this.getClass(),"Covered goals archive");
-//		this.uncoveredGoals.removeAll(this.getCoveredGoals());
-//	}
+	// private void updateArchive(List<T> solutionSet) {
+	// // store the test cases that are optimal for the test goal in the
+	// // archive
+	// for (FitnessFunction<T> entry : this.getCoveredGoals()){
+	// double bestSize = this.archive.get(entry).size();
+	// for (T solution : solutionSet) {
+	// double value = entry.getFitness(solution);
+	// double size = solution.size();
+	// if (value == 0.0 && size < bestSize) {
+	// this.archive.put(entry, solution);
+	// bestSize = size;
+	// }
+	// }
+	// }
+	// //this.printArchive();
+	// logger.debug("UpdateArchive function covered goals size: " +
+	// this.getCoveredGoals().size());
+	// //PrintObjectCollection.print(this.getCoveredGoals(),this.getClass(),"Covered
+	// goals archive");
+	// this.uncoveredGoals.removeAll(this.getCoveredGoals());
+	// }
 
 	/**
-	 * This method update the archive by adding test cases that cover new test goals, or replacing the
+	 * This method update the archive by adding test cases that cover new test
+	 * goals, or replacing the
 	 * old tests if the new ones are smaller (at the same level of coverage).
 	 */
 	private void updateArchive(T solution, FitnessFunction<T> covered) {
@@ -523,7 +568,8 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 		// archive
 		if (archive.containsKey(covered)) {
 			TestChromosome existingSolution = (TestChromosome) this.archive.get(covered);
-			// if the new solution is better (based on secondary criterion), then the archive must be updated
+			// if the new solution is better (based on secondary criterion), then the
+			// archive must be updated
 			if (solution.compareSecondaryObjective(existingSolution) < 0) {
 				this.archive.put(covered, solution);
 			}
@@ -543,7 +589,7 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 
 	protected List<T> getFinalTestSuite() {
 		// trivial case where there are no branches to cover or the archive is empty
-		if (this.getNumberOfCoveredGoals()==0) {
+		if (this.getNumberOfCoveredGoals() == 0) {
 			return getArchive();
 		}
 		if (archive.size() == 0)
@@ -557,28 +603,33 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 	}
 
 	/**
-	 * This method is used by the Progress Monitor at the and of each generation to show the total coverage reached by the algorithm.
-	 * Since the Progress Monitor need a "Suite", this method artificially creates a "SuiteChromosome" (see {@link AdaptiveRandomSearch#suiteFitness})
-	 * as the union of all test cases stored in {@link AdaptiveRandomSearch#archive}.
+	 * This method is used by the Progress Monitor at the and of each generation to
+	 * show the total coverage reached by the algorithm.
+	 * Since the Progress Monitor need a "Suite", this method artificially creates a
+	 * "SuiteChromosome" (see {@link AdaptiveRandomSearch#suiteFitness})
+	 * as the union of all test cases stored in
+	 * {@link AdaptiveRandomSearch#archive}.
 	 *
-	 * The coverage score of the "SuiteChromosome" is given by the percentage of test goals covered (goals in {@link AdaptiveRandomSearch#archive})
-	 * onto the total number of goals <code> this.fitnessFunctions</code> (see {@link GeneticAlgorithm}).
+	 * The coverage score of the "SuiteChromosome" is given by the percentage of
+	 * test goals covered (goals in {@link AdaptiveRandomSearch#archive})
+	 * onto the total number of goals <code> this.fitnessFunctions</code> (see
+	 * {@link GeneticAlgorithm}).
 	 *
 	 * @return "SuiteChromosome" directly consumable by the Progress Monitor.
 	 */
 	@Override
 	public T getBestIndividual() {
 		TestSuiteChromosome best = new TestSuiteChromosome();
-		//Chromosome best = new TestSuiteChromosome();
+		// Chromosome best = new TestSuiteChromosome();
 		for (T test : getArchive()) {
 			best.addTest((TestChromosome) test);
 		}
 		// compute overall fitness and coverage
 		double coverage = ((double) this.getNumberOfCoveredGoals()) / ((double) this.fitnessFunctions.size());
 		best.setCoverage(suiteFitness, coverage);
-		best.setFitness(suiteFitness,  this.fitnessFunctions.size() - this.getNumberOfCoveredGoals());
-		//suiteFitness.getFitness(best);
-		return (T)best;
+		best.setFitness(suiteFitness, this.fitnessFunctions.size() - this.getNumberOfCoveredGoals());
+		// suiteFitness.getFitness(best);
+		return (T) best;
 	}
 
 	@Override
@@ -595,33 +646,34 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 		return bests;
 	}
 
-//	private void updateCoveredGoals(List<T> solutionSet){
-////		logger.info("Update covered goals function");
-//		Map<FitnessFunction<T>, T> newCoveredGoals = new HashMap<FitnessFunction<T>, T>();
-//		for (FitnessFunction<T> entry : this.uncoveredGoals) {
-////			logger.info("Goal " + entry.toString() + " is covered?");
-//			double best_size = Double.MAX_VALUE;
-//			double minimumValues = Double.MAX_VALUE;
-//			T best = null;
-//			for (T solution : solutionSet) {
-//				double value = solution.getFitness(entry);
-//				double size = solution.size();
-////				logger.info("Solution, fitness value: " + value + " size: " + size);
-//				if (value < minimumValues || (value == minimumValues && size < best_size)) {
-//					minimumValues = value;
-//					best_size = size;
-//					best = solution;
-//				}
-//			}
-////			logger.info("MinimiumValues: " + minimumValues);
-//			if (minimumValues == 0.0){
-////				logger.info("Goal " + entry.toString() + " IS covered");
-//				newCoveredGoals.put(entry, best);
-//			}else{
-////				logger.info("Goal " + entry.toString() + " is NOT covered");
-//			}
-//		}
-//		this.archive.putAll(newCoveredGoals);
-//	}
+	// private void updateCoveredGoals(List<T> solutionSet){
+	//// logger.info("Update covered goals function");
+	// Map<FitnessFunction<T>, T> newCoveredGoals = new HashMap<FitnessFunction<T>,
+	// T>();
+	// for (FitnessFunction<T> entry : this.uncoveredGoals) {
+	//// logger.info("Goal " + entry.toString() + " is covered?");
+	// double best_size = Double.MAX_VALUE;
+	// double minimumValues = Double.MAX_VALUE;
+	// T best = null;
+	// for (T solution : solutionSet) {
+	// double value = solution.getFitness(entry);
+	// double size = solution.size();
+	//// logger.info("Solution, fitness value: " + value + " size: " + size);
+	// if (value < minimumValues || (value == minimumValues && size < best_size)) {
+	// minimumValues = value;
+	// best_size = size;
+	// best = solution;
+	// }
+	// }
+	//// logger.info("MinimiumValues: " + minimumValues);
+	// if (minimumValues == 0.0){
+	//// logger.info("Goal " + entry.toString() + " IS covered");
+	// newCoveredGoals.put(entry, best);
+	// }else{
+	//// logger.info("Goal " + entry.toString() + " is NOT covered");
+	// }
+	// }
+	// this.archive.putAll(newCoveredGoals);
+	// }
 
 }
