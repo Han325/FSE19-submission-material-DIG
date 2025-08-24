@@ -137,6 +137,8 @@ public class TestExecution {
                 "@AfterClass \n public static void resetCoverageStats() \n{ " +
                         "LogExporter.exportCollectedLogsToFile(masterLogList); \n" +
                         "CoverageManager coverageManager = new CoverageManager(); \n" +
+                        "String coverageJson = coverageManager.getCoverageJsonObjectAsString(); \n" +
+                        "coverageManager.writeRawJsonCoverageReport(coverageJson, pathToESTestSuite + \"/coverage-final.json\"); \n" +
                         "coverageManager.resetCoverageStats(); \n" +
                         "ResetAppState.quitDriver(driver); \n" +
                         "}");

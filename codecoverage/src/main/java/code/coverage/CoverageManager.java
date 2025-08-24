@@ -29,10 +29,10 @@ import java.util.stream.Collectors;
 
 public class CoverageManager {
 
-    public CoverageManager(){
+    public CoverageManager() {
     }
 
-    public Object getCoverageObject(WebDriver driver){
+    public Object getCoverageObject(WebDriver driver) {
 
         System.out.println("--- [DEBUG] Inside getCoverageObject. Attempting to get page source. ---");
         try {
@@ -49,21 +49,22 @@ public class CoverageManager {
 
         JavascriptExecutor javascriptExecutor = (JavascriptExecutor) driver;
         Object coverage = javascriptExecutor.executeScript("return window.__coverage__;");
-        if(coverage == null){
-            throw new IllegalStateException("Be sure that the application source code has been instrumented with \' istanbul instrument \'");
+        if (coverage == null) {
+            throw new IllegalStateException(
+                    "Be sure that the application source code has been instrumented with \' istanbul instrument \'");
         }
         return coverage;
     }
 
-    public void sendCoverageObjectToExpressServer(Object coverage){
+    public void sendCoverageObjectToExpressServer(Object coverage) {
         try {
-            HttpRequestFactory requestFactory
-                    = new NetHttpTransport().createRequestFactory();
+            HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
             JsonHttpContent jsonHttpContent = new JsonHttpContent(new JacksonFactory(), coverage);
             HttpRequest request = requestFactory.buildPostRequest(
                     new GenericUrl("http://localhost:"
                             + MyProperties.getInstance().getExpressServerPort()
-                            + "/coverage/client"), jsonHttpContent);
+                            + "/coverage/client"),
+                    jsonHttpContent);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType("application/json");
             request.setHeaders(headers);
@@ -75,10 +76,9 @@ public class CoverageManager {
         }
     }
 
-    public String getCoverageReportFromExpressServer(){
+    public String getCoverageReportFromExpressServer() {
         try {
-            HttpRequestFactory requestFactory
-                    = new NetHttpTransport().createRequestFactory();
+            HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
             HttpRequest request = requestFactory.buildGetRequest(
                     new GenericUrl("http://localhost:"
                             + MyProperties.getInstance().getExpressServerPort()
@@ -89,22 +89,23 @@ public class CoverageManager {
             String htmlResponse = request.execute().parseAsString();
             return htmlResponse;
         } catch (IOException e) {
-            System.out.println("[CodeCoverage] Be sure that the express server is running or that you post the coverage info through the client (sendCoverageObjectToExpressServer).");
+            System.out.println(
+                    "[CodeCoverage] Be sure that the express server is running or that you post the coverage info through the client (sendCoverageObjectToExpressServer).");
             e.printStackTrace();
             return "";
         }
     }
 
-    public void resetCoverageStats(){
+    public void resetCoverageStats() {
         try {
-            HttpRequestFactory requestFactory
-                    = new NetHttpTransport().createRequestFactory();
+            HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
             JsonObject jsonObject = new JsonObject();
             JsonHttpContent jsonHttpContent = new JsonHttpContent(new JacksonFactory(), jsonObject);
             HttpRequest request = requestFactory.buildPostRequest(
                     new GenericUrl("http://localhost:"
                             + MyProperties.getInstance().getExpressServerPort()
-                            + "/coverage/reset"), jsonHttpContent);
+                            + "/coverage/reset"),
+                    jsonHttpContent);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType("application/json");
             request.setHeaders(headers);
@@ -116,7 +117,7 @@ public class CoverageManager {
         }
     }
 
-    public List<CoverageInfo> parseHTMLResponse(String html){
+    public List<CoverageInfo> parseHTMLResponse(String html) {
         Document doc = Jsoup.parse(html);
         Element coverageSummaryContainer = doc.select("div.clearfix").first();
         Elements children = coverageSummaryContainer.children();
@@ -125,15 +126,17 @@ public class CoverageManager {
                     CoverageInfo coverageInfo = new CoverageInfo();
                     for (int i = 0; i < element.children().size(); i++) {
                         Element span = element.child(i);
-                        if(span.hasText()){
-                            if(i == 0){ //percentage
+                        if (span.hasText()) {
+                            if (i == 0) { // percentage
                                 String percentage = span.text();
-                                String doublePercentage = percentage.replace("%", "").trim(); //trim remove white spaces before and after the string
+                                String doublePercentage = percentage.replace("%", "").trim(); // trim remove white
+                                                                                              // spaces before and after
+                                                                                              // the string
                                 coverageInfo.setPercentage(Double.valueOf(doublePercentage));
-                            }else if(i == 1){ //name
+                            } else if (i == 1) { // name
                                 String name = span.text();
                                 coverageInfo.setName(name.trim());
-                            }else if(i == 2){ //fraction
+                            } else if (i == 2) { // fraction
                                 String fraction = span.text().trim();
                                 String numDen[] = fraction.split("/");
                                 String num = numDen[0];
@@ -150,11 +153,11 @@ public class CoverageManager {
         return coverageInfos;
     }
 
-    public void writeCoverageReport(List<CoverageInfo> coverageInfos, String pathToESTestSuite){
+    public void writeCoverageReport(List<CoverageInfo> coverageInfos, String pathToESTestSuite) {
         try {
             int counter = 0;
             File resultFile = new File(pathToESTestSuite + "/coverage-report" + counter + ".txt");
-            while(resultFile.exists()){
+            while (resultFile.exists()) {
                 resultFile = new File(pathToESTestSuite + "/coverage-report" + counter + ".txt");
                 counter++;
             }
@@ -167,9 +170,11 @@ public class CoverageManager {
         }
     }
 
-    public void writeCoverageReport(List<CoverageInfo> coverageInfos, String pathToESTestSuite, int indexOfCoverageReport){
+    public void writeCoverageReport(List<CoverageInfo> coverageInfos, String pathToESTestSuite,
+            int indexOfCoverageReport) {
         try {
-            Writer writer = new PrintWriter(new File(pathToESTestSuite) + "/coverage-report" + indexOfCoverageReport + ".txt");
+            Writer writer = new PrintWriter(
+                    new File(pathToESTestSuite) + "/coverage-report" + indexOfCoverageReport + ".txt");
             writer.write(coverageInfos.stream().map(String::valueOf).collect(Collectors.joining("\n")));
             writer.flush();
             writer.close();
@@ -178,21 +183,61 @@ public class CoverageManager {
         }
     }
 
+    // PASTE THESE TWO NEW METHODS INTO YOUR CoverageManager.java FILE
+
+    public String getCoverageJsonObjectAsString() {
+        System.out.println("Getting raw coverage JSON object from server...");
+        try {
+            HttpRequestFactory requestFactory = new NetHttpTransport().createRequestFactory();
+            HttpRequest request = requestFactory.buildGetRequest(
+                    new GenericUrl("http://localhost:"
+                            + MyProperties.getInstance().getExpressServerPort()
+                            + "/coverage/object"));
+
+            // This endpoint returns application/json, so we parse it as a raw string.
+            String jsonResponse = request.execute().parseAsString();
+            System.out.println("Successfully retrieved coverage JSON object.");
+            return jsonResponse;
+        } catch (IOException e) {
+            System.out.println(
+                    "[CodeCoverage] Failed to get coverage JSON object. Be sure that the express server is running.");
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public void writeRawJsonCoverageReport(String jsonData, String outputFilePath) {
+        if (jsonData == null || jsonData.isEmpty()) {
+            System.out.println("Cannot write coverage report, JSON data is empty.");
+            return;
+        }
+        System.out.println("Writing coverage-final.json to: " + outputFilePath);
+        try (Writer writer = new PrintWriter(outputFilePath)) {
+            writer.write(jsonData);
+            writer.flush();
+        } catch (IOException e) {
+            System.out.println("[CodeCoverage] Failed to write raw JSON coverage report.");
+            e.printStackTrace();
+        }
+    }
+
     private void parseOkResponse(HttpResponse httpResponse) throws IOException {
-        try{
+        try {
             String rawResponse = httpResponse.parseAsString();
-            Type okMessageType = new TypeToken<OkMessage>() {}.getType();
+            Type okMessageType = new TypeToken<OkMessage>() {
+            }.getType();
             Gson gson = new Gson();
             OkMessage okMessage = gson.fromJson(rawResponse, okMessageType);
-            if(!okMessage.getOk().equals("true")){
-                throw new IllegalStateException("Response message is not as expected! Expected \'{\"ok\":true}\' found " + rawResponse);
+            if (!okMessage.getOk().equals("true")) {
+                throw new IllegalStateException(
+                        "Response message is not as expected! Expected \'{\"ok\":true}\' found " + rawResponse);
             }
-        }finally {
+        } finally {
             httpResponse.disconnect();
         }
     }
 
-    private static class OkMessage{
+    private static class OkMessage {
 
         private String ok;
 
