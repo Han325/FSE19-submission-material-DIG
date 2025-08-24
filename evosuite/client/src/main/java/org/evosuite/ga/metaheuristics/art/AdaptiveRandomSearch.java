@@ -165,7 +165,7 @@ public class AdaptiveRandomSearch<T extends Chromosome> extends GeneticAlgorithm
 
 			if (USE_SEED_BANK_MODE) {
 				T candidate;
-				// --- EXPERIMENT MODE ---
+				// --- EXPERIMENT MODE (DEPRECATED) please ignore this ---
 				// Hijack the generation. Instead of calling the factory,
 				// we pull the next available seed from our loaded bank.
 				if (seedBankIndex >= seedBank.size()) {
